@@ -387,7 +387,7 @@ const scoreDB = [
   ],
   calculate: (v) => Object.values(v).reduce((a,b)=>a+(b||0),0),
   interpret: (s) => {
-    if(s<=4) return {risk:'low',title:'Minör İnme',detail:`NIHSS: ${s}. Minör inme. IV tPA genellikle endike değildir. Dual antiplatelet tedavi ve etiyoloji araştırması planlanmalıdır.`,pct:(s/42)*100};
+    if(s<=4) return {risk:'low',title:'Minör İnme',detail:`NIHSS: ${s}. Düşük NIHSS. DİKKAT: düşük skor tek başına trombolizi DIŞLAMAZ. Belirleyici olan defisitin dizabilite yaratıp yaratmadığıdır – izole afazi, izole hemianopsi veya izole el güçsüzlüğü gibi tablolarda NIHSS düşük olsa da IV tromboliz önerilir. Yalnızca minör ve dizabilite yaratmayan defisitte tromboliz verilmez; bu durumda dual antiplatelet ve etiyoloji araştırması planlanır.`,pct:(s/42)*100};
     if(s<=15) return {risk:'moderate',title:'Orta Şiddetli İnme',detail:`NIHSS: ${s}. Orta şiddetli inme. 4.5 saat içindeyse IV tPA, LVO şüphesinde mekanik trombektomi değerlendirilmelidir.`,pct:(s/42)*100};
     if(s<=24) return {risk:'high',title:'Ağır İnme',detail:`NIHSS: ${s}. Ağır inme. Acil rekanalizasyon tedavisi (IV tPA + mekanik trombektomi) kuvvetle önerilir. LVO yüksek olasılıklıdır.`,pct:(s/42)*100};
     return {risk:'critical',title:'Çok Ağır İnme',detail:`NIHSS: ${s}. Çok ağır inme. Mortalite riski yüksektir. Agresif rekanalizasyon ve yoğun bakım takibi gereklidir.`,pct:(s/42)*100};
@@ -432,7 +432,7 @@ const scoreDB = [
   fields:[
     {type:'radio',label:'Yaş',name:'abcd2_a',options:[{text:'<60 yaş',val:0},{text:'≥60 yaş',val:1}]},
     {type:'radio',label:'Kan Basıncı (İlk ölçüm)',name:'abcd2_b',options:[{text:'Sistolik <140 VE Diastolik <90',val:0},{text:'Sistolik ≥140 VEYA Diastolik ≥90',val:1}]},
-    {type:'radio',label:'Klinik Özellikler',name:'abcd2_c',options:[{text:'Diğer semptomlar',val:0},{text:'Dizartri olmaksızın konuşma bozukluğu',val:1},{text:'Unilateral güçsüzlük',val:2}]},
+    {type:'radio',label:'Klinik Özellikler',name:'abcd2_c',options:[{text:'Diğer semptomlar',val:0},{text:'Güçsüzlük olmaksızın konuşma bozukluğu',val:1},{text:'Unilateral güçsüzlük',val:2}]},
     {type:'radio',label:'Semptom Süresi',name:'abcd2_d',options:[{text:'<10 dakika',val:0},{text:'10-59 dakika',val:1},{text:'≥60 dakika',val:2}]},
     {type:'radio',label:'Diyabet',name:'abcd2_dm',options:[{text:'Yok',val:0},{text:'Var',val:1}]}
   ],
@@ -467,20 +467,28 @@ const scoreDB = [
     ]}
   ],
   calculate: (v) => {
-    let score = 0;
-    if(v.pecarn_age===0){
-      ['pecarn_u2_gcs','pecarn_u2_fx','pecarn_u2_loc','pecarn_u2_mech','pecarn_u2_hem','pecarn_u2_beh'].forEach(k=>{if(v[k]) score+=v[k]});
-    } else {
-      ['pecarn_o2_gcs','pecarn_o2_fx','pecarn_o2_loc','pecarn_o2_mech','pecarn_o2_vom','pecarn_o2_ha'].forEach(k=>{if(v[k]) score+=v[k]});
-    }
-    return score;
+    // PECARN puan toplayan bir skor DEGILDIR: once yuksek riskli kriterlere,
+    // yoksa ara riskli kriterlere bakilir. Iki ara risk bulgusu hastayi
+    // yuksek risk grubuna TASIMAZ.
+    const yas2Alti = (v.pecarn_age === 0);
+    const hrKeys = yas2Alti ? ['pecarn_u2_gcs','pecarn_u2_fx']
+                            : ['pecarn_o2_gcs','pecarn_o2_fx'];
+    const mrKeys = yas2Alti ? ['pecarn_u2_loc','pecarn_u2_mech','pecarn_u2_hem','pecarn_u2_beh']
+                            : ['pecarn_o2_loc','pecarn_o2_mech','pecarn_o2_vom','pecarn_o2_ha'];
+    let hr = 0, mr = 0;
+    hrKeys.forEach(k=>{ if(v[k]) hr++; });
+    mrKeys.forEach(k=>{ if(v[k]) mr++; });
+    const yasSecildi = (v.pecarn_age !== undefined && v.pecarn_age !== null);
+    return {hr, mr, yasSecildi, grup: yas2Alti ? '<2 yaş' : '≥2 yaş', total: hr + mr};
   },
   interpret: (s) => {
-    if(s>=4) return {risk:'high',title:'BT Önerilir',detail:`Yüksek riskli kriter(ler) pozitif. ciTBI riski ≥%4.4. Kraniyal BT endikedir.`,pct:80};
-    if(s>=2) return {risk:'moderate',title:'Gözlem veya BT',detail:`Orta riskli kriter(ler) pozitif. ciTBI riski ~%0.9. Gözlem (4-6 saat) veya BT tercih edilebilir. Aile ile ortak karar verin.`,pct:40};
-    return {risk:'low',title:'BT Gerekmez',detail:`Kriter pozitif değil. ciTBI riski <%0.02. BT endike değildir. Gözlem sonrası güvenle taburcu edilebilir.`,pct:2};
+    if(typeof s !== 'object') return {risk:'low',title:'Değerlendirme',detail:'Kriterleri işaretleyiniz.',pct:0};
+    if(!s.yasSecildi) return {risk:'moderate',title:'Önce Yaş Grubunu Seçiniz',detail:'PECARN kriterleri yaş grubuna göre farklıdır. Lütfen önce <2 yaş / ≥2 yaş seçimini yapınız.',pct:0};
+    if(s.hr > 0) return {risk:'high',title:'BT Önerilir',detail:`${s.grup} grubu – ${s.hr} yüksek riskli kriter pozitif. ciTBI riski ~%4.4. Kraniyal BT endikedir.`,pct:80};
+    if(s.mr > 0) return {risk:'moderate',title:'Gözlem veya BT – Ortak Karar',detail:`${s.grup} grubu – yüksek riskli kriter YOK, ${s.mr} ara riskli bulgu var. ciTBI riski ~%0.9. Bu grup yüksek risk grubu DEĞİLDİR: 4-6 saat gözlem ile BT arasında aile ile ortak karar verilmelidir. Bulgu sayısının artması tek başına hastayı yüksek risk grubuna taşımaz; hekim değerlendirmesi belirleyicidir.`,pct:35};
+    return {risk:'low',title:'BT Gerekmez',detail:`${s.grup} grubu – hiçbir kriter pozitif değil. ciTBI riski <%0.05. BT endike değildir. Gözlem sonrası güvenle taburcu edilebilir.`,pct:2};
   },
-  chartType:'risk', maxScore:16
+  chartType:'risk', maxScore:6
 },
 {
   id:'ich_score', name:'ICH Skoru', region:'kafa', category:'Nöroloji',
@@ -563,7 +571,7 @@ const scoreDB = [
     return s;
   },
   interpret: (s) => {
-    if(s<=1) return {risk:'low',title:'Düşük Olasılık',detail:`Wells PTE: ${s}. PTE olasılığı düşük (~%1.3 D-dimer negatifse). D-dimer bakılması önerilir; negatifse PTE ekarte edilebilir.`,pct:5};
+    if(s<2) return {risk:'low',title:'Düşük Olasılık',detail:`Wells PTE: ${s}. PTE olasılığı düşük (~%1.3 D-dimer negatifse). D-dimer bakılması önerilir; negatifse PTE ekarte edilebilir. (Üç kademeli Wells'te düşük olasılık sınırı <2'dir.)`,pct:5};
     if(s<=6) return {risk:'moderate',title:'Orta Olasılık',detail:`Wells PTE: ${s}. PTE olasılığı orta (~%16-28). D-dimer bakılmalı; pozitifse BT pulmoner anjiyografi (BTPA) endikedir.`,pct:28};
     return {risk:'high',title:'Yüksek Olasılık',detail:`Wells PTE: ${s}. PTE olasılığı yüksek (~%40-50). D-dimer beklenmeden acil BTPA çekilmelidir. Antikoagülasyona başlanması düşünülmelidir.`,pct:50};
   },
@@ -632,7 +640,7 @@ const scoreDB = [
       {text:'Yaş ≥65',val:1,key:'timi_age'},
       {text:'≥3 KAH risk faktörü',val:1,key:'timi_rf'},
       {text:'Bilinen koroner stenoz ≥%50',val:1,key:'timi_sten'},
-      {text:'Son 24 saatte aspirin kullanımı',val:1,key:'timi_asa'},
+      {text:'Son 7 günde aspirin kullanımı',val:1,key:'timi_asa'},
       {text:'Son 24 saatte ≥2 anjina atağı',val:1,key:'timi_ang'},
       {text:'ST deviasyonu ≥0.5mm',val:1,key:'timi_st'},
       {text:'Pozitif kardiyak biyomarker',val:1,key:'timi_bio'}
@@ -803,7 +811,7 @@ const scoreDB = [
   desc:'Akut apandisit olasılığının değerlendirilmesi (MANTRELS)',
   fields:[
     {type:'checkbox',label:'Semptomlar',name:'alv_sym',options:[
-      {text:'Ağrının göbeğe göç etmesi',val:1,key:'alv_mig'},
+      {text:'Ağrının göbek çevresinden sağ alt kadrana göç etmesi',val:1,key:'alv_mig'},
       {text:'İştahsızlık/anoreksi',val:1,key:'alv_ano'},
       {text:'Bulantı/kusma',val:1,key:'alv_nv'}
     ]},
@@ -1013,7 +1021,7 @@ const scoreDB = [
     {type:'checkbox',label:'Düşük Risk Faktörleri (Hiçbiri yoksa → Görüntüleme)',name:'ccs_lr',options:[
       {text:'Basit arkadan çarpma MTA',val:1,key:'ccs_rear'},
       {text:'Acil serviste oturur pozisyonda',val:1,key:'ccs_sit'},
-      {text:'Olay yerinde ambulans olabilir',val:1,key:'ccs_amb'},
+      {text:'Hasta olaydan sonra herhangi bir zamanda yürüyebildi',val:1,key:'ccs_amb'},
       {text:'Gecikmeli boyun ağrısı başlangıcı',val:1,key:'ccs_del'},
       {text:'Posterior orta hat servikal hassasiyet yok',val:1,key:'ccs_notend'}
     ]},
@@ -1023,10 +1031,11 @@ const scoreDB = [
     let hr=0,lr=0;
     ['ccs_age','ccs_mech','ccs_par'].forEach(k=>{if(v[k]) hr++});
     ['ccs_rear','ccs_sit','ccs_amb','ccs_del','ccs_notend'].forEach(k=>{if(v[k]) lr++});
-    if(hr>0) return {hr,lr,rot:v.ccs_rot||0,result:'high'};
-    if(lr===0) return {hr,lr,rot:v.ccs_rot||0,result:'high'};
-    if(v.ccs_rot===1) return {hr,lr,rot:1,result:'high'};
-    return {hr,lr,rot:0,result:'low'};
+    const toplam = hr + lr;   // puan kutusunda gosterilir (isaretli kriter sayisi)
+    if(hr>0) return {hr,lr,total:toplam,rot:v.ccs_rot||0,result:'high'};
+    if(lr===0) return {hr,lr,total:toplam,rot:v.ccs_rot||0,result:'high'};
+    if(v.ccs_rot===1) return {hr,lr,total:toplam,rot:1,result:'high'};
+    return {hr,lr,total:toplam,rot:0,result:'low'};
   },
   interpret: (s) => {
     if(typeof s==='object'){
@@ -1097,15 +1106,17 @@ const scoreDB = [
   id:'iss', name:'ISS (Yaralanma Ciddiyet Skoru)', region:'ekstremite', category:'Ekstremite/Travma',
   desc:'Çoklu travma hastalarında genel yaralanma şiddeti (1-75)',
   fields:[
-    {type:'radio',label:'Baş/Boyun (AIS)',name:'iss_1',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5}]},
-    {type:'radio',label:'Yüz (AIS)',name:'iss_2',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5}]},
-    {type:'radio',label:'Göğüs (AIS)',name:'iss_3',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5}]},
-    {type:'radio',label:'Karın/Pelvis (AIS)',name:'iss_4',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5}]},
-    {type:'radio',label:'Ekstremite/Pelvik Kuşak (AIS)',name:'iss_5',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5}]},
-    {type:'radio',label:'Dış (Yanık vb.) (AIS)',name:'iss_6',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5}]}
+    {type:'radio',label:'Baş/Boyun (AIS)',name:'iss_1',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5},{text:'Sağkalımsız (6)',val:6}]},
+    {type:'radio',label:'Yüz (AIS)',name:'iss_2',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5},{text:'Sağkalımsız (6)',val:6}]},
+    {type:'radio',label:'Göğüs (AIS)',name:'iss_3',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5},{text:'Sağkalımsız (6)',val:6}]},
+    {type:'radio',label:'Karın/Pelvis (AIS)',name:'iss_4',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5},{text:'Sağkalımsız (6)',val:6}]},
+    {type:'radio',label:'Ekstremite/Pelvik Kuşak (AIS)',name:'iss_5',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5},{text:'Sağkalımsız (6)',val:6}]},
+    {type:'radio',label:'Dış (Yanık vb.) (AIS)',name:'iss_6',options:[{text:'Yok',val:0},{text:'Minör (1)',val:1},{text:'Orta (2)',val:2},{text:'Ciddi (3)',val:3},{text:'Ağır (4)',val:4},{text:'Kritik (5)',val:5},{text:'Sağkalımsız (6)',val:6}]}
   ],
   calculate: (v) => {
     let vals = [v.iss_1||0,v.iss_2||0,v.iss_3||0,v.iss_4||0,v.iss_5||0,v.iss_6||0];
+    // AIS kurali: herhangi bir bolgede AIS 6 varsa ISS otomatik olarak 75 kabul edilir.
+    if(vals.some(x => x === 6)) return 75;
     vals.sort((a,b)=>b-a);
     return vals[0]*vals[0]+vals[1]*vals[1]+vals[2]*vals[2];
   },
@@ -1113,7 +1124,7 @@ const scoreDB = [
     if(s<9) return {risk:'low',title:'Minör Travma',detail:`ISS: ${s}. Minör yaralanma. Standart acil servis değerlendirmesi yeterlidir.`,pct:5};
     if(s<16) return {risk:'moderate',title:'Orta Travma',detail:`ISS: ${s}. Orta şiddetli yaralanma. Multidisipliner değerlendirme ve gözlem önerilir.`,pct:25};
     if(s<25) return {risk:'high',title:'Majör Travma',detail:`ISS: ${s}. Majör travma. Travma ekip aktivasyonu ve ileri değerlendirme (Whole-body BT) gereklidir.`,pct:55};
-    return {risk:'critical',title:'Kritik/Masif Travma',detail:`ISS: ${s}. Kritik travma (ISS≥25 major travma tanımı). Masif transfüzyon protokolü, travma cerrahisi ve yoğun bakım zorunludur.`,pct:85};
+    return {risk:'critical',title:'Kritik/Masif Travma',detail:`ISS: ${s}. Kritik travma. (Major travma tanımı ISS >15'tir; bu hasta onun çok üzerindedir.)${s===75?' Herhangi bir bölgede AIS 6 (sağkalımsız yaralanma) işaretlendiği için ISS otomatik 75 kabul edilmiştir.':''} Masif transfüzyon protokolü, travma cerrahisi ve yoğun bakım zorunludur.`,pct:85};
   },
   chartType:'gauge', maxScore:75
 },
@@ -1162,13 +1173,23 @@ const scoreDB = [
     ]}
   ],
   calculate: (v) => {
-    let spo2 = Math.max(v.news_spo2_1||0, v.news_spo2_2||0);
-    return (v.news_rr||0)+spo2+(v.news_o2||0)+(v.news_sbp||0)+(v.news_hr||0)+(v.news_cons||0)+(v.news_temp||0);
+    const spo2 = Math.max(v.news_spo2_1||0, v.news_spo2_2||0);
+    const parcalar = [v.news_rr||0, spo2, v.news_o2||0, v.news_sbp||0, v.news_hr||0, v.news_cons||0, v.news_temp||0];
+    const total = parcalar.reduce((a,b)=>a+b, 0);
+    // RCP kurali: tek bir parametrede 3 puan varsa toplam dusuk olsa bile
+    // hasta ORTA risk kabul edilir (saatlik izlem + acil hekim degerlendirmesi).
+    const kirmizi = parcalar.some(x => x === 3);
+    return {total, kirmizi};
   },
-  interpret: (s) => {
-    if(s<=4) return {risk:'low',title:'Düşük Klinik Risk',detail:`NEWS2: ${s}/20. Düşük risk. Minimum 12 saatte bir vital kontrol yeterlidir. Rutin bakım planı devam eder.`,pct:(s/20)*100};
-    if(s<=6) return {risk:'moderate',title:'Orta Klinik Risk',detail:`NEWS2: ${s}/20. Orta risk – acil yanıt eşiği. Minimum saatte bir vital kontrol. Kıdemli hekim bilgilendirilmeli, Sepsis-6 düşünülmelidir.`,pct:(s/20)*100};
-    return {risk:'critical',title:'Yüksek Klinik Risk',detail:`NEWS2: ${s}/20. Yüksek risk – acil yanıt. Sürekli vital izlem. Kritik bakım ekibi çağrılmalı. Sepsis-6 ve yoğun bakım transferi değerlendirilmelidir.`,pct:(s/20)*100};
+  interpret: (r) => {
+    const s = (typeof r === 'object') ? r.total : r;
+    const kirmizi = (typeof r === 'object') ? r.kirmizi : false;
+    const pct = (s/20)*100;
+    if(s>=7) return {risk:'critical',title:'Yüksek Klinik Risk',detail:`NEWS2: ${s}/20. Yüksek risk – acil yanıt. Sürekli vital izlem. Kritik bakım ekibi çağrılmalı. Sepsis-6 ve yoğun bakım transferi değerlendirilmelidir.`,pct};
+    if(s>=5) return {risk:'moderate',title:'Orta Klinik Risk',detail:`NEWS2: ${s}/20. Orta risk – acil yanıt eşiği. Minimum saatte bir vital kontrol. Kıdemli hekim acilen bilgilendirilmeli, Sepsis-6 düşünülmelidir.`,pct};
+    if(kirmizi) return {risk:'moderate',title:'Orta Klinik Risk – Tek Parametrede 3 Puan',detail:`NEWS2 toplam: ${s}/20 (düşük) ANCAK tek bir parametre 3 puan aldı. RCP kuralı gereği bu hasta ORTA risk kabul edilir: minimum saatte bir vital kontrol ve acil hekim değerlendirmesi gereklidir. Toplam puana bakılarak düşük risk sayılmamalıdır.`,pct};
+    if(s===0) return {risk:'low',title:'Düşük Klinik Risk',detail:`NEWS2: 0/20. Düşük risk. Minimum 12 saatte bir vital kontrol yeterlidir. Rutin bakım planı devam eder.`,pct};
+    return {risk:'low',title:'Düşük Klinik Risk',detail:`NEWS2: ${s}/20. Düşük risk. Minimum 4-6 saatte bir vital kontrol gereklidir (12 saatlik aralık yalnızca NEWS2 = 0 için geçerlidir). Hemşire değerlendirmesi ile takip edilmelidir.`,pct};
   },
   chartType:'gauge', maxScore:20
 },
@@ -1264,9 +1285,10 @@ const scoreDB = [
   ],
   calculate: (v) => (v.sofa_resp||0)+(v.sofa_coag||0)+(v.sofa_liver||0)+(v.sofa_cv||0)+(v.sofa_cns||0)+(v.sofa_renal||0),
   interpret: (s) => {
-    if(s<=5) return {risk:'low',title:'Düşük Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite <%10. Organ fonksiyonları nispeten korunmuştur. İzlem ve destek tedavisi yeterlidir.`,pct:10};
-    if(s<=10) return {risk:'moderate',title:'Orta Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite ~%15-20. Organ yetmezliği gelişimi izlenmelidir. Yoğun bakım takibi önerilir.`,pct:35};
-    if(s<=14) return {risk:'high',title:'Ağır Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite ~%40-50. Çoklu organ yetmezliği gelişmektedir. Agresif organ destek tedavisi gereklidir.`,pct:60};
+    if(s<=6) return {risk:'low',title:'Düşük Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite <%10. Organ fonksiyonları nispeten korunmuştur. İzlem ve destek tedavisi yeterlidir.`,pct:10};
+    if(s<=9) return {risk:'moderate',title:'Orta Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite ~%15-20. Organ yetmezliği gelişimi izlenmelidir. Yoğun bakım takibi önerilir.`,pct:20};
+    if(s<=12) return {risk:'high',title:'Ağır Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite ~%40-50. Çoklu organ yetmezliği gelişmektedir. Agresif organ destek tedavisi gereklidir.`,pct:45};
+    if(s<=14) return {risk:'high',title:'Çok Ağır Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite ~%50-60. Çoklu organ yetmezliği ilerlemektedir. Maksimal organ destek tedavisi gereklidir.`,pct:60};
     return {risk:'critical',title:'Kritik Organ Yetmezliği',detail:`SOFA: ${s}/24. Mortalite >%80. Çoklu organ yetmezliği. Maksimal destek ve palyatif bakım seçenekleri değerlendirilmelidir.`,pct:90};
   },
   chartType:'bar', maxScore:24
@@ -1319,7 +1341,7 @@ const scoreDB = [
   id:'4t_hit', name:'4T Skoru (HIT)', region:'sistemik', category:'Sistemik/Sepsis',
   desc:'Heparin kaynaklı trombositopeni (HIT) olasılık değerlendirmesi',
   fields:[
-    {type:'radio',label:'Trombositopeni',name:'4t_thr',options:[{text:'≥%50 düşüş veya nadir >20x10⁹',val:2},{text:'%30-50 düşüş veya nadir 10-19x10⁹',val:1},{text:'<%30 düşüş veya nadir <10x10⁹',val:0}]},
+    {type:'radio',label:'Trombositopeni',name:'4t_thr',options:[{text:'>%50 düşüş VE nadir ≥20x10⁹',val:2},{text:'%30-50 düşüş veya nadir 10-19x10⁹',val:1},{text:'<%30 düşüş veya nadir <10x10⁹',val:0}]},
     {type:'radio',label:'Zamanlama',name:'4t_tim',options:[{text:'Başlangıç 5-10. gün veya ≤1 gün (son 30 günde heparin)',val:2},{text:'Başlangıç uyumlu ama net değil',val:1},{text:'Erken başlangıç (≤4. gün, son 100 günde heparin yok)',val:0}]},
     {type:'radio',label:'Tromboz veya Diğer Sekeller',name:'4t_trh',options:[{text:'Yeni tromboz, deri nekrozu veya akut sistemik reaksiyon',val:2},{text:'İlerleyen/rekürren tromboz veya şüpheli tromboz',val:1},{text:'Yok',val:0}]},
     {type:'radio',label:'Diğer Trombositopeni Nedenleri',name:'4t_oth',options:[{text:'Başka neden belirgin değil',val:2},{text:'Olası başka neden var',val:1},{text:'Kesin başka neden var',val:0}]}
@@ -1369,7 +1391,7 @@ const scoreDB = [
   ],
   calculate: (v) => (v.lr_crp||0)+(v.lr_wbc||0)+(v.lr_hb||0)+(v.lr_na||0)+(v.lr_cr||0)+(v.lr_glu||0),
   interpret: (s) => {
-    if(s<=5) return {risk:'low',title:'Nekrotizan Fasiit Düşük Olasılık',detail:`LRINEC: ${s}/13. Nekrotizan fasiit olasılığı düşük (<%50). Selülit tedavisi ve yakın izlem.`,pct:15};
+    if(s<=5) return {risk:'low',title:'Nekrotizan Fasiit Düşük Olasılık',detail:`LRINEC: ${s}/13. LRINEC düşük. ANCAK DİKKAT: düşük LRINEC nekrotizan fasiiti DIŞLAMAZ – NF hastalarının önemli bir kısmı skoru <6 iken tanı almıştır. Klinik şüphe varsa (orantısız ağrı, hızlı ilerleme, bül, krepitasyon, sistemik toksisite) cerrahi konsültasyon ERTELENMEMELİDİR. Skor tanı koydurmaz, yalnızca destekleyicidir.`,pct:15};
     if(s<=7) return {risk:'moderate',title:'Orta Olasılık',detail:`LRINEC: ${s}/13. Nekrotizan fasiit düşünülmeli (~%50-75). Acil cerrahi konsültasyon ve görüntüleme (BT/MR) önerilir.`,pct:50};
     return {risk:'critical',title:'Yüksek Olasılık',detail:`LRINEC: ${s}/13. Nekrotizan fasiit olasılığı yüksek (>%75). Acil cerrahi eksplorasyon endikedir. IV geniş spektrumlu antibiyotik başlanmalıdır.`,pct:85};
   },
