@@ -50,8 +50,8 @@ Her adımda hatırlatıcı ipuçları, vital bulgu girişi, skorlama entegrasyon
 **Yerel kullanım:** `index.html` dosyasını indirip çift tıklamanız yeterlidir. Ek bir sunucu veya bağımlılık kurulumu gerektirmez.
 
 ```bash
-git clone https://github.com/<kullanici>/veah-cdss.git
-cd veah-cdss
+git clone https://github.com/<kullanici>/veah-klinik-karar-destek.git
+cd veah-klinik-karar-destek
 # index.html dosyasını tarayıcıda açın
 ```
 
