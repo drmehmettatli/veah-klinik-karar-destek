@@ -18,7 +18,7 @@ Kurulum gerekmez, tarayıcıda doğrudan çalışır.
 - Hesaplanan skorlar tek başına tanı koydurmaz ve tedavi kararı vermez.
 - Tüm sonuçlar hastayı gören hekim tarafından doğrulanmalıdır.
 - Skorların dayandığı kılavuzlar zamanla güncellenir; kullanmadan önce güncel kaynakla teyit ediniz.
-- Aşağıdaki **Bilinen Sorunlar** bölümünü mutlaka okuyunuz.
+- Aşağıdaki **Klinik Doğruluk** bölümünü, özellikle *Kalan bilinen sınırlamalar* kısmını mutlaka okuyunuz.
 
 Geliştiriciler, bu aracın kullanımından doğabilecek klinik sonuçlardan sorumlu tutulamaz.
 
@@ -89,34 +89,50 @@ Kayıt sırasında **sunumu yapan hekimin adı** sorulur ve kayda işlenir; bu a
 
 ---
 
-## Bilinen Sorunlar
+## Klinik Doğruluk
 
-Aşağıdaki maddeler bağımsız bir klinik doğruluk denetiminde tespit edilmiştir ve **henüz düzeltilmemiştir.** Bu skorları kullanırken sonucu kılavuzla teyit ediniz.
+Skor kütüphanesi bağımsız bir klinik doğruluk denetiminden geçirilmiş, tespit edilen hatalar birincil kaynaklara başvurularak düzeltilmiştir. Düzeltmelerin tamamı 42 skorun otomatik testiyle doğrulanmıştır.
 
-**Öncelikli (klinik karar değiştirebilir)**
+### Düzeltilen hatalar
 
-- **PECARN** – Yüksek riskli maddelere 4, ara risklilere 2 puan verilip toplanıyor. İki ara risk bulgusu (ör. kusma + şiddetli baş ağrısı) toplamda 4 ederek hastayı hatalı biçimde "yüksek risk – BT endike" grubuna taşıyor. Doğrusu ara risk grubudur (gözlem ya da BT, aile ile ortak karar).
-- **Canadian C-Spine** – Düşük risk kriteri *"Olay yerinde ambulans olabilir"* olarak yazılmış. Orijinal kriter *"Ambulatory at any time"*, yani **hastanın olaydan sonra yürüyebilmiş olmasıdır**. Mevcut haliyle kriter neredeyse her vakada işaretlenir.
-- **NEWS2** – Toplam 1-4 için "12 saatte bir vital kontrol" öneriliyor; RCP protokolünde 12 saat yalnızca skor 0 içindir, 1-4 için 4-6 saattir. Ayrıca "tek parametrede 3 puan → saatlik izlem" kuralı uygulanmamıştır.
-- **GRACE** – Alan puanları 6 aylık mortalite tablosundan, eşikler ve "hastane içi mortalite" etiketi ise hastane içi tablosundan alınmış; iki nomogram karışmıştır.
-- **SOFA** – Skor 10 için "~%15-20" mortalite belirtiliyor; literatürde bu grup %40-50 aralığındadır.
+**Hasta kararını değiştirebilecek olanlar**
 
-**İkincil (kriter metni / eşik)**
+- **PECARN** – Yüksek riskli (4 puan) ve ara riskli (2 puan) kriterler toplanıyordu; iki ara risk bulgusu 4 ederek hastayı hatalı biçimde "yüksek risk – BT endike" grubuna taşıyordu. Artık iki grup ayrı sayılıyor ve ara risk grubu "gözlem vs BT – ortak karar" olarak raporlanıyor. Yaş grubu seçilmediğinde uyarı veriyor (önceden sessizce ≥2 yaş kabul ediliyordu).
+- **Canadian C-Spine** – *"Olay yerinde ambulans olabilir"* kriteri, orijinaldeki *"Ambulatory at any time"* ifadesinin hatalı çevirisiydi ve neredeyse her vakada işaretleniyordu. *"Hasta olaydan sonra herhangi bir zamanda yürüyebildi"* olarak düzeltildi.
+- **NEWS2** – Toplam 1-4 için izlem aralığı 12 saatten 4-6 saate çekildi (12 saat yalnızca skor 0 için geçerlidir). RCP'nin *"tek parametrede 3 puan → orta risk, saatlik izlem"* kuralı eklendi; bu kural olmadan tek başına SpO₂ 91% olan hasta "düşük risk" görünüyordu.
+- **GRACE** – Madde puanları 6 aylık taburculuk sonrası nomogramdan, eşikler ve "hastane içi mortalite" etiketi ise hastane içi nomogramdan alınmıştı; iki farklı skor karışmıştı. Tüm puanlar Granger 2003 hastane içi nomogramına çevrildi (yaş, kalp hızı, sistolik KB, kreatinin kategorileri ve Killip/arrest/ST/biyomarker puanları dahil). Maksimum 372 ile doğrulandı.
+- **SOFA** – Skor 10 için "%15-20" mortalite gösteriliyordu; bu grup literatürde %40-50'dir. Bantlar yeniden düzenlendi ve 13-14 için ayrı bant eklendi.
 
-- **ABCD2** – *"Dizartri olmaksızın konuşma bozukluğu"* → doğrusu *"güçsüzlük olmaksızın konuşma bozukluğu"*.
-- **Alvarado** – *"Ağrının göbeğe göç etmesi"* → doğrusu *"göbek çevresinden sağ alt kadrana göç"*.
-- **4T (HIT)** – *"≥%50 düşüş **veya** nadir >20×10⁹"* → orijinalde **VE** koşuludur; ayrıca `≥20` olmalıdır.
-- **TIMI** – Aspirin kriteri "son 24 saat" yazılmış, doğrusu **son 7 gün**.
-- **Wells (PTE)** – Düşük olasılık eşiği `≤1` alınmış; üç kademeli Wells'te sınır `<2`'dir.
-- **NIHSS ≤4** – "IV tPA genellikle endike değildir" ifadesi fazla kesindir; dizabilite yaratan düşük skorlu tablolarda tromboliz önerilebilir.
-- **LRINEC ≤5** – Düşük skor nekrotizan fasiiti **dışlamaz**; klinik şüphe varsa cerrahi konsültasyon ertelenmemelidir.
-- **CHA₂DS₂-VASc** – Risk yüzdesi literatür tablosu yerine doğrusal bir formülle (`skor × 1.5`) hesaplanıyor; ayrıca antikoagülasyon eşiğinde cinsiyet ayrımı yapılmıyor.
-- **PSI/PORT** – "Bakımevi/huzurevi sakini +10 puan" maddesi eksiktir.
-- **ISS** – AIS 6 seçeneği ve "AIS 6 → ISS otomatik 75" kuralı uygulanmamıştır.
+**Kriter metni ve eşik hataları**
+
+- **ABCD2** – *"Dizartri olmaksızın konuşma bozukluğu"* → *"Güçsüzlük olmaksızın konuşma bozukluğu"*
+- **Alvarado** – *"Ağrının göbeğe göçü"* → *"Göbek çevresinden sağ alt kadrana göç"*
+- **4T (HIT)** – *"≥%50 düşüş **veya** nadir >20×10⁹"* → *">%50 düşüş **VE** nadir ≥20×10⁹"*
+- **TIMI** – Aspirin kriteri "son 24 saat" → "son 7 gün"
+- **Wells (PTE)** – Düşük olasılık eşiği `≤1` → `<2`. Wells'te 1.5 puanlık kalemler bulunduğu için 1.5 skoru mümkündür ve düşük risk grubuna girer; eski eşik bu hastaları gereksiz yere orta riske atıyordu.
+- **CHA₂DS₂-VASc** – Yıllık inme riski uydurma doğrusal bir formülle (`skor × 1.5`) hesaplanıyordu; Friberg 2012 kohort tablosu ile değiştirildi. Antikoagülasyon eşiği cinsiyete göre ayrıldı (erkek ≥2, kadın ≥3 için Sınıf I). Ayrıca *"Yaş ≥75"* ve *"Yaş 65-74"* aynı anda işaretlenebiliyor ve skor 10 çıkabiliyordu; gerçek maksimum 9'dur, kriterler artık birbirini dışlıyor.
+- **PSI/PORT** – Eksik olan *"bakımevi/huzurevi sakini +10 puan"* maddesi eklendi. Sınıf V mortalitesi %27-31 olarak düzeltildi; yoğun bakım kararının PSI ile verilmemesi gerektiği notu eklendi.
+- **NIHSS** – *"IV tPA genellikle endike değildir"* ifadesi kaldırıldı; belirleyicinin skor değil defisitin dizabilite yaratıp yaratmadığı olduğu açıklandı.
+- **LRINEC** – Düşük skorun nekrotizan fasiiti dışlamadığı ve klinik şüphede cerrahi konsültasyonun ertelenmemesi gerektiği uyarısı eklendi.
+- **ISS** – AIS ölçeğinde eksik olan 6 (sağkalımsız) seçeneği eklendi ve *"herhangi bir bölgede AIS 6 → ISS otomatik 75"* kuralı uygulandı. *"Major travma ISS ≥25"* yanlış tanımı ISS >15 olarak düzeltildi.
+- **Canadian C-Spine** – Sonuç ekranında puan kutusu boş görünüyordu.
+
+### Kalan bilinen sınırlamalar
+
+Aşağıdaki maddeler denetimde daha düşük öncelikli bulunmuş olup henüz ele alınmamıştır:
+
+- **GAP** – Mortalite oranları düşük veriliyor (11-18 grubu için ~%15, literatürde ~%33).
+- **BISAP** ve **qCSI** – Bazı gruplarda mortalite/risk oranları kaynaklarla tam örtüşmüyor; doğrulanmalı.
+- **Hunt-Hess** – Kullanılan mortalite serisi kaynaklar arasında belirgin farklılık gösteriyor.
+- **Şok İndeksi** – Uyarı eşiği olarak ≤1.0 kullanılıyor; en sık atıf alan eşik ≥0.9'dur.
+- **SIRS** – Ampirik antibiyotik önerisi "enfeksiyon şüphesi varsa" koşuluna bağlanmalı (SIRS enfeksiyona özgü değildir).
+- **Glasgow-Blatchford** – Erkek ve kadın hemoglobin alanları aynı anda görünüyor; cinsiyet tek alanla sorulmalı.
+- **Ranson** – Dal `≥7`de tetikleniyor, metin "≥8 kriter" diyor.
+- **MELD** – Orijinal MELD uygulanmıştır; UNOS 2023'ten beri tahsis için MELD 3.0 kullanılmaktadır.
+- **GCS** – Entübe hastada sözel bileşen için "T" seçeneği yok.
+- **PECARN** – Ağır yaralanma mekanizması tanımındaki yaşa göre düşme yüksekliği farkı (<2 yaş 0.9 m, ≥2 yaş 1.5 m) arayüzde belirtilmiyor.
 
 Katkı sağlamak isterseniz bu maddeler için pull request'ler memnuniyetle karşılanır.
-
----
 
 ## Katkı
 

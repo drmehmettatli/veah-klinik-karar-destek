@@ -486,7 +486,7 @@ const scoreDB = [
     if(!s.yasSecildi) return {risk:'moderate',title:'Önce Yaş Grubunu Seçiniz',detail:'PECARN kriterleri yaş grubuna göre farklıdır. Lütfen önce <2 yaş / ≥2 yaş seçimini yapınız.',pct:0};
     if(s.hr > 0) return {risk:'high',title:'BT Önerilir',detail:`${s.grup} grubu – ${s.hr} yüksek riskli kriter pozitif. ciTBI riski ~%4.4. Kraniyal BT endikedir.`,pct:80};
     if(s.mr > 0) return {risk:'moderate',title:'Gözlem veya BT – Ortak Karar',detail:`${s.grup} grubu – yüksek riskli kriter YOK, ${s.mr} ara riskli bulgu var. ciTBI riski ~%0.9. Bu grup yüksek risk grubu DEĞİLDİR: 4-6 saat gözlem ile BT arasında aile ile ortak karar verilmelidir. Bulgu sayısının artması tek başına hastayı yüksek risk grubuna taşımaz; hekim değerlendirmesi belirleyicidir.`,pct:35};
-    return {risk:'low',title:'BT Gerekmez',detail:`${s.grup} grubu – hiçbir kriter pozitif değil. ciTBI riski <%0.05. BT endike değildir. Gözlem sonrası güvenle taburcu edilebilir.`,pct:2};
+    return {risk:'low',title:'BT Gerekmez',detail:`${s.grup} grubu – hiçbir kriter pozitif değil. ciTBI riski <%0.02 (<2 yaş) / <%0.05 (≥2 yaş). BT endike değildir – ciTBI riski, BT'ye bağlı malignite riskinin altındadır. Gözlem sonrası güvenle taburcu edilebilir.`,pct:2};
   },
   chartType:'risk', maxScore:6
 },
@@ -573,7 +573,7 @@ const scoreDB = [
   interpret: (s) => {
     if(s<2) return {risk:'low',title:'Düşük Olasılık',detail:`Wells PTE: ${s}. PTE olasılığı düşük (~%1.3 D-dimer negatifse). D-dimer bakılması önerilir; negatifse PTE ekarte edilebilir. (Üç kademeli Wells'te düşük olasılık sınırı <2'dir.)`,pct:5};
     if(s<=6) return {risk:'moderate',title:'Orta Olasılık',detail:`Wells PTE: ${s}. PTE olasılığı orta (~%16-28). D-dimer bakılmalı; pozitifse BT pulmoner anjiyografi (BTPA) endikedir.`,pct:28};
-    return {risk:'high',title:'Yüksek Olasılık',detail:`Wells PTE: ${s}. PTE olasılığı yüksek (~%40-50). D-dimer beklenmeden acil BTPA çekilmelidir. Antikoagülasyona başlanması düşünülmelidir.`,pct:50};
+    return {risk:'high',title:'Yüksek Olasılık',detail:`Wells PTE: ${s}. PTE olasılığı yüksek (~%37-41). D-dimer önerilmez; doğrudan acil BTPA çekilmelidir. Antikoagülasyona başlanması düşünülmelidir.`,pct:50};
   },
   chartType:'gauge', maxScore:12.5
 },
@@ -661,18 +661,18 @@ const scoreDB = [
   chartType:'gauge', maxScore:7
 },
 {
-  id:'grace', name:'GRACE Risk Skoru (Basitleştirilmiş)', region:'gogus', category:'Kardiyo-Pulmoner',
-  desc:'AKS hastane içi ve 6 aylık mortalite tahmini',
+  id:'grace', name:'GRACE Risk Skoru (Hastane İçi)', region:'gogus', category:'Kardiyo-Pulmoner',
+  desc:'NSTE-AKS hastane içi mortalite tahmini (GRACE 1.0, Granger 2003)',
   fields:[
-    {type:'radio',label:'Yaş',name:'grace_age',options:[{text:'<40',val:0},{text:'40-49',val:18},{text:'50-59',val:36},{text:'60-69',val:55},{text:'70-79',val:73},{text:'≥80',val:91}]},
-    {type:'radio',label:'Kalp Hızı',name:'grace_hr',options:[{text:'<70',val:0},{text:'70-89',val:7},{text:'90-109',val:13},{text:'110-149',val:23},{text:'≥150',val:36}]},
-    {type:'radio',label:'Sistolik KB',name:'grace_sbp',options:[{text:'<80',val:63},{text:'80-99',val:58},{text:'100-119',val:47},{text:'120-139',val:37},{text:'140-159',val:26},{text:'≥160',val:11}]},
-    {type:'radio',label:'Kreatinin',name:'grace_cr',options:[{text:'<0.4',val:2},{text:'0.4-0.79',val:5},{text:'0.8-1.19',val:8},{text:'1.2-1.59',val:11},{text:'1.6-1.99',val:14},{text:'2.0-3.99',val:23},{text:'≥4.0',val:31}]},
-    {type:'radio',label:'Killip Sınıfı',name:'grace_kil',options:[{text:'Sınıf I (KKY yok)',val:0},{text:'Sınıf II (Ral/JVD)',val:21},{text:'Sınıf III (Pulmoner ödem)',val:43},{text:'Sınıf IV (Kardiyojenik şok)',val:64}]},
+    {type:'radio',label:'Yaş',name:'grace_age',options:[{text:'<30',val:0},{text:'30-39',val:8},{text:'40-49',val:25},{text:'50-59',val:41},{text:'60-69',val:58},{text:'70-79',val:75},{text:'80-89',val:91},{text:'≥90',val:100}]},
+    {type:'radio',label:'Kalp Hızı (/dk)',name:'grace_hr',options:[{text:'<50',val:0},{text:'50-69',val:3},{text:'70-89',val:9},{text:'90-109',val:15},{text:'110-149',val:24},{text:'150-199',val:38},{text:'≥200',val:46}]},
+    {type:'radio',label:'Sistolik KB (mmHg)',name:'grace_sbp',options:[{text:'<80',val:58},{text:'80-99',val:53},{text:'100-119',val:43},{text:'120-139',val:34},{text:'140-159',val:24},{text:'160-199',val:10},{text:'≥200',val:0}]},
+    {type:'radio',label:'Kreatinin (mg/dL)',name:'grace_cr',options:[{text:'<0.4',val:1},{text:'0.4-0.79',val:4},{text:'0.8-1.19',val:7},{text:'1.2-1.59',val:10},{text:'1.6-1.99',val:13},{text:'2.0-3.99',val:21},{text:'≥4.0',val:28}]},
+    {type:'radio',label:'Killip Sınıfı',name:'grace_kil',options:[{text:'Sınıf I (KKY yok)',val:0},{text:'Sınıf II (Ral/JVD)',val:20},{text:'Sınıf III (Pulmoner ödem)',val:39},{text:'Sınıf IV (Kardiyojenik şok)',val:59}]},
     {type:'checkbox',label:'Ek Kriterler',name:'grace_add',options:[
-      {text:'Kardiyak arrest (başvuruda)',val:43,key:'grace_arr'},
-      {text:'ST segment deviasyonu',val:30,key:'grace_st'},
-      {text:'Pozitif kardiyak biyomarker',val:15,key:'grace_bio'}
+      {text:'Kardiyak arrest (başvuruda)',val:39,key:'grace_arr'},
+      {text:'ST segment deviasyonu',val:28,key:'grace_st'},
+      {text:'Pozitif kardiyak biyomarker',val:14,key:'grace_bio'}
     ]}
   ],
   calculate: (v) => {
@@ -681,9 +681,9 @@ const scoreDB = [
     return s;
   },
   interpret: (s) => {
-    if(s<=108) return {risk:'low',title:'Düşük Risk',detail:`GRACE: ${s}. Hastane içi mortalite <%1. Konservatif strateji uygundur.`,pct:5};
-    if(s<=140) return {risk:'moderate',title:'Orta Risk',detail:`GRACE: ${s}. Hastane içi mortalite ~%1-3. Erken invaziv değerlendirme düşünülmelidir.`,pct:30};
-    return {risk:'high',title:'Yüksek Risk',detail:`GRACE: ${s}. Hastane içi mortalite >%3. Acil invaziv strateji endikedir.`,pct:70};
+    if(s<=108) return {risk:'low',title:'Düşük Risk',detail:`GRACE: ${s}/372. NSTE-AKS hastane içi mortalite <%1. Konservatif strateji uygundur; iskemi rehberliğinde değerlendirme yapılır.`,pct:5};
+    if(s<=140) return {risk:'moderate',title:'Orta Risk',detail:`GRACE: ${s}/372. NSTE-AKS hastane içi mortalite ~%1-3. Hospitalizasyon ve invaziv değerlendirme düşünülmelidir.`,pct:30};
+    return {risk:'high',title:'Yüksek Risk',detail:`GRACE: ${s}/372. NSTE-AKS hastane içi mortalite >%3. ESC 2023: GRACE >140 olan NSTE-AKS hastalarında erken invaziv strateji (<24 saat) düşünülmelidir (Sınıf IIa). Not: bu eşikler NSTE-AKS içindir; STEMI'de hastane içi bantlar farklıdır (düşük 49-125, orta 126-154, yüksek >154).`,pct:70};
   },
   chartType:'gauge', maxScore:372
 },
@@ -744,11 +744,11 @@ const scoreDB = [
     return s;
   },
   interpret: (s) => {
-    if(s<=50) return {risk:'low',title:'Sınıf I (Düşük Risk)',detail:`PSI: ${s}. Mortalite ~%0.1. Ayaktan tedavi uygundur. (Not: orijinal PSI'de Sınıf I puanla değil ön-eleme ile belirlenir: yaş <50, komorbidite yok, vital ve mental bulgular normal. Buradaki puan tabanlı sınıflama bir yaklaşıktır.)`,pct:1};
+    if(s<=50) return {risk:'low',title:'Sınıf I (Düşük Risk)',detail:`PSI: ${s}. Mortalite ~%0.1. Ayaktan tedavi uygundur. (Not: orijinal PSI'de Sınıf I puanla değil ön-eleme ile belirlenir: yaş ≤50, beş komorbiditenin hiçbiri yok, beş fizik muayene bulgusunun hiçbiri yok. Buradaki puan tabanlı sınıflama bir yaklaşıktır.)`,pct:1};
     if(s<=70) return {risk:'low',title:'Sınıf II (Düşük Risk)',detail:`PSI: ${s}. Mortalite ~%0.6. Ayaktan tedavi genellikle uygundur.`,pct:3};
-    if(s<=90) return {risk:'moderate',title:'Sınıf III (Orta Risk)',detail:`PSI: ${s}. Mortalite ~%2.8. Kısa hastane yatışı düşünülmelidir.`,pct:15};
+    if(s<=90) return {risk:'moderate',title:'Sınıf III (Orta Risk)',detail:`PSI: ${s}. Mortalite ~%0.9-2.8. Kısa süreli yatarak gözlem (≤24 saat) düşünülmelidir.`,pct:15};
     if(s<=130) return {risk:'high',title:'Sınıf IV (Yüksek Risk)',detail:`PSI: ${s}. Mortalite ~%8.2. Hastane yatışı endikedir.`,pct:50};
-    return {risk:'critical',title:'Sınıf V (Çok Yüksek Risk)',detail:`PSI: ${s}. Mortalite ~%29.2. Yoğun bakım yatışı gereklidir.`,pct:85};
+    return {risk:'critical',title:'Sınıf V (Çok Yüksek Risk)',detail:`PSI: ${s}. Mortalite ~%27-31. Hastane yatışı gereklidir. NOT: PSI yatış kararı içindir; yoğun bakım kararı PSI veya CURB-65 ile verilmemeli, ATS/IDSA ağır pnömoni kriterleri (1 majör veya ≥3 minör) kullanılmalıdır.`,pct:85};
   },
   chartType:'bar', maxScore:300
 },
@@ -782,7 +782,7 @@ const scoreDB = [
 },
 {
   id:'cha2ds2', name:'CHA₂DS₂-VASc', region:'gogus', category:'Kardiyo-Pulmoner',
-  desc:'Atriyal fibrilasyonda inme riski ve antikoagülasyon endikasyonu',
+  desc:'AF\'de inme riski ve antikoagülasyon endikasyonu (ESC 2024 cinsiyeti çıkarıp CHA₂DS₂-VA\'ya geçmiştir)',
   fields:[
     {type:'checkbox',label:'Risk Faktörleri',name:'cha_cr',options:[
       {text:'Konjestif kalp yetmezliği (C)',val:1,key:'cha_c'},
@@ -1314,7 +1314,7 @@ const scoreDB = [
     if(s<=9) return {risk:'moderate',title:'Orta Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite ~%15-20. Organ yetmezliği gelişimi izlenmelidir. Yoğun bakım takibi önerilir.`,pct:20};
     if(s<=12) return {risk:'high',title:'Ağır Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite ~%40-50. Çoklu organ yetmezliği gelişmektedir. Agresif organ destek tedavisi gereklidir.`,pct:45};
     if(s<=14) return {risk:'high',title:'Çok Ağır Organ Disfonksiyonu',detail:`SOFA: ${s}/24. Mortalite ~%50-60. Çoklu organ yetmezliği ilerlemektedir. Maksimal organ destek tedavisi gereklidir.`,pct:60};
-    return {risk:'critical',title:'Kritik Organ Yetmezliği',detail:`SOFA: ${s}/24. Mortalite >%80. Çoklu organ yetmezliği. Maksimal destek ve palyatif bakım seçenekleri değerlendirilmelidir.`,pct:90};
+    return {risk:'critical',title:'Kritik Organ Yetmezliği',detail:`SOFA: ${s}/24. Mortalite >%80. Çoklu organ yetmezliği. Maksimal destek ve palyatif bakım seçenekleri değerlendirilmelidir. NOT: SOFA organ disfonksiyonunu tanımlamak için geliştirilmiştir, mortalite tahmini için değil; buradaki bantlar 1990'ların Avrupa YBÜ kohortlarından türetilmiş yaklaşık değerlerdir ve günümüz için yüksek kalibre olabilir. Tek başına prognoz kararına dayanak yapılmamalıdır.`,pct:90};
   },
   chartType:'bar', maxScore:24
 },
