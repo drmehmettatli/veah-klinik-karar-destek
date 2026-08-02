@@ -1,0 +1,24 @@
+# Bagimliliklar
+node_modules/
+
+# Isletim sistemi
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Gecici / yedek dosyalar
+*.log
+*.tmp
+*.bak
+*~
+
+# Hasta verisi iceren disa aktarimlar asla depoya girmemeli
+*.local.html
+kayitlar*.json
+hasta*.json
+export*.csv
