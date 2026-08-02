@@ -4,6 +4,10 @@ Acil serviste kullanılmak üzere geliştirilmiş, **tek dosyalık** klinik kara
 
 > **Van Eğitim ve Araştırma Hastanesi – Acil Tıp Kliniği | SBÜ**
 
+### 🔗 [Uygulamayı aç →](https://drmehmettatli.github.io/veah-klinik-karar-destek/)
+
+Kurulum gerekmez, tarayıcıda doğrudan çalışır.
+
 ---
 
 ## ⚠️ Sorumluluk Reddi
@@ -45,12 +49,12 @@ Her adımda hatırlatıcı ipuçları, vital bulgu girişi, skorlama entegrasyon
 
 ## Kullanım
 
-**Web üzerinden:** Yukarıdaki bağlantıdan doğrudan açabilirsiniz. Kurulum gerekmez.
+**Web üzerinden:** https://drmehmettatli.github.io/veah-klinik-karar-destek/ adresinden doğrudan açabilirsiniz. Kurulum gerekmez.
 
 **Yerel kullanım:** `index.html` dosyasını indirip çift tıklamanız yeterlidir. Ek bir sunucu veya bağımlılık kurulumu gerektirmez.
 
 ```bash
-git clone https://github.com/<kullanici>/veah-klinik-karar-destek.git
+git clone https://github.com/drmehmettatli/veah-klinik-karar-destek.git
 cd veah-klinik-karar-destek
 # index.html dosyasını tarayıcıda açın
 ```
