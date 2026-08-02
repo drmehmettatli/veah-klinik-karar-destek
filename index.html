@@ -718,6 +718,9 @@ const scoreDB = [
   fields:[
     {type:'number',label:'Yaş (yıl)',name:'psi_age',min:0,max:120},
     {type:'radio',label:'Cinsiyet',name:'psi_sex',options:[{text:'Erkek',val:0},{text:'Kadın',val:-10}]},
+    {type:'checkbox',label:'Yaşam Yeri',name:'psi_res',options:[
+      {text:'Bakımevi / huzurevi sakini',val:10,key:'psi_nh'}
+    ]},
     {type:'checkbox',label:'Komorbidite',name:'psi_com',options:[
       {text:'Neoplastik hastalık',val:30,key:'psi_neo'},{text:'Karaciğer hastalığı',val:20,key:'psi_hep'},
       {text:'Konjestif kalp yetmezliği',val:10,key:'psi_chf'},{text:'Serebrovasküler hastalık',val:10,key:'psi_cvd'},
@@ -737,11 +740,11 @@ const scoreDB = [
   ],
   calculate: (v) => {
     let s=(v.psi_age||0)+(v.psi_sex||0);
-    ['psi_neo','psi_hep','psi_chf','psi_cvd','psi_ren','psi_ms','psi_rr','psi_sbp','psi_temp','psi_pulse','psi_ph','psi_bun','psi_na','psi_glu','psi_hct','psi_po2','psi_eff'].forEach(k=>{if(v[k]) s+=v[k]});
+    ['psi_nh','psi_neo','psi_hep','psi_chf','psi_cvd','psi_ren','psi_ms','psi_rr','psi_sbp','psi_temp','psi_pulse','psi_ph','psi_bun','psi_na','psi_glu','psi_hct','psi_po2','psi_eff'].forEach(k=>{if(v[k]) s+=v[k]});
     return s;
   },
   interpret: (s) => {
-    if(s<=50) return {risk:'low',title:'Sınıf I (Düşük Risk)',detail:`PSI: ${s}. Mortalite ~%0.1. Sınıf I-II: Ayaktan tedavi uygundur.`,pct:1};
+    if(s<=50) return {risk:'low',title:'Sınıf I (Düşük Risk)',detail:`PSI: ${s}. Mortalite ~%0.1. Ayaktan tedavi uygundur. (Not: orijinal PSI'de Sınıf I puanla değil ön-eleme ile belirlenir: yaş <50, komorbidite yok, vital ve mental bulgular normal. Buradaki puan tabanlı sınıflama bir yaklaşıktır.)`,pct:1};
     if(s<=70) return {risk:'low',title:'Sınıf II (Düşük Risk)',detail:`PSI: ${s}. Mortalite ~%0.6. Ayaktan tedavi genellikle uygundur.`,pct:3};
     if(s<=90) return {risk:'moderate',title:'Sınıf III (Orta Risk)',detail:`PSI: ${s}. Mortalite ~%2.8. Kısa hastane yatışı düşünülmelidir.`,pct:15};
     if(s<=130) return {risk:'high',title:'Sınıf IV (Yüksek Risk)',detail:`PSI: ${s}. Mortalite ~%8.2. Hastane yatışı endikedir.`,pct:50};
