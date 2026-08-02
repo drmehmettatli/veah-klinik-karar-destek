@@ -4,9 +4,10 @@ Acil serviste kullanılmak üzere geliştirilmiş, **tek dosyalık** klinik kara
 
 > **Van Eğitim ve Araştırma Hastanesi – Acil Tıp Kliniği | SBÜ**
 
-### 🔗 [Uygulamayı aç →](https://drmehmettatli.github.io/veah-klinik-karar-destek/)
+### 🔗 [Uygulamayı aç →](http://vanaciltip.me/veah-klinik-karar-destek/)
 
 Kurulum gerekmez, tarayıcıda doğrudan çalışır.
+(`https://drmehmettatli.github.io/veah-klinik-karar-destek/` adresi de aynı sayfaya yönlenir.)
 
 ---
 
@@ -49,7 +50,7 @@ Her adımda hatırlatıcı ipuçları, vital bulgu girişi, skorlama entegrasyon
 
 ## Kullanım
 
-**Web üzerinden:** https://drmehmettatli.github.io/veah-klinik-karar-destek/ adresinden doğrudan açabilirsiniz. Kurulum gerekmez.
+**Web üzerinden:** http://vanaciltip.me/veah-klinik-karar-destek/ adresinden doğrudan açabilirsiniz. Kurulum gerekmez.
 
 **Yerel kullanım:** `index.html` dosyasını indirip çift tıklamanız yeterlidir. Ek bir sunucu veya bağımlılık kurulumu gerektirmez.
 
@@ -67,6 +68,7 @@ Tek bir `index.html` dosyasından oluşur; derleme adımı yoktur.
 
 - **Tailwind CSS** ve **Chart.js** CDN üzerinden yüklenir. İnternet erişimi olmayan ortamlarda sayfa biçimlendirmesi ve grafikler çalışmaz — çevrimdışı kullanım gerekiyorsa bu iki kütüphanenin yerel kopyaları gömülmelidir.
 - Form verileri tarayıcının `localStorage` alanında saklanır (`sbpsaape_data`, `veah_records`). **Şifrelenmez.** Ortak kullanılan bilgisayarlarda oturum sonunda "Sıfırla" ile temizleyiniz.
+- Yayın adresi şu an **HTTPS değil, HTTP** üzerinden sunulmaktadır (`vanaciltip.me` için GitHub Pages sertifikası henüz oluşturulmamıştır). Tarayıcılar sayfayı "Güvenli değil" olarak işaretler. Hasta verisi girilecekse HTTPS etkinleştirilene kadar yerel kullanım tercih edilmelidir.
 - "Kaydet" işlemi, yerel kayda ek olarak sunum özetini yapılandırılmış bir Google Forms adresine gönderir. Gönderim `mode: 'no-cors'` ile yapıldığından **başarısız olsa dahi arayüzde başarılı görünür**.
 
 ### Veri Mahremiyeti
