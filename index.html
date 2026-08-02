@@ -797,13 +797,35 @@ const scoreDB = [
   ],
   calculate: (v) => {
     let s=0;
-    ['cha_c','cha_h','cha_a2','cha_d','cha_s2','cha_v','cha_a','cha_sc'].forEach(k=>{if(v[k]) s+=v[k]});
-    return s;
+    ['cha_c','cha_h','cha_d','cha_s2','cha_v','cha_sc'].forEach(k=>{if(v[k]) s+=v[k]});
+    // Yas kriterleri birbirini dislar: >=75 (2 puan) isaretliyse 65-74 (1 puan)
+    // sayilmaz. Aksi halde maksimum 10 cikardi; gercek maksimum 9'dur.
+    if(v.cha_a2) s += 2;
+    else if(v.cha_a) s += 1;
+    // Antikoagulasyon esigi cinsiyete gore farkli oldugu icin kadin bilgisi tasinir.
+    return {total:s, kadin: !!v.cha_sc};
   },
-  interpret: (s) => {
-    if(s===0) return {risk:'low',title:'Düşük Risk',detail:`CHA₂DS₂-VASc: ${s}. Yıllık inme riski ~%0. Antikoagülasyon önerilmez.`,pct:2};
-    if(s===1) return {risk:'moderate',title:'Orta Risk',detail:`CHA₂DS₂-VASc: ${s}. Yıllık inme riski ~%1.3. Antikoagülasyon düşünülmeli (özellikle erkek hastada). Hasta tercihi ve kanama riski değerlendirilmeli.`,pct:15};
-    return {risk:'high',title:'Yüksek Risk',detail:`CHA₂DS₂-VASc: ${s}. Yıllık inme riski ~%${Math.min(s*1.5,15)}+. Oral antikoagülasyon (DOAK veya warfarin) endikedir.`,pct:Math.min(s*10,90)};
+  interpret: (r) => {
+    const s = (typeof r === 'object') ? r.total : r;
+    const kadin = (typeof r === 'object') ? r.kadin : false;
+    // Yillik iskemik inme riski (%) - antikoagulasyonsuz kohort verisi
+    const RISK = [0.2, 0.6, 2.2, 3.2, 4.8, 7.2, 9.7, 11.2, 10.8, 12.2];
+    const y = RISK[Math.min(s, 9)];
+    // ESC: OAK erkekte >=2, kadinda >=3 "onerilir"; erkekte 1, kadinda 2 "dusunulmelidir"
+    const oakOnerilir = kadin ? (s >= 3) : (s >= 2);
+    const oakDusunul  = kadin ? (s === 2) : (s === 1);
+    const cinsNot = kadin
+      ? 'Kadın cinsiyeti bağımsız bir risk faktörü değil, risk değiştiricidir; bu nedenle kadınlarda eşik bir puan yüksektir.'
+      : '';
+    if(oakOnerilir) return {risk:'high',title:'Yüksek Risk – OAK Önerilir',
+      detail:`CHA₂DS₂-VASc: ${s}. Yıllık inme riski ~%${y}. Oral antikoagülasyon (DOAK tercih edilir) önerilir (Sınıf I). Kanama riski için HAS-BLED değerlendirilmeli; yüksek HAS-BLED antikoagülasyonu engellemez, değiştirilebilir risk faktörlerinin düzeltilmesini gerektirir. ${cinsNot}`.trim(),
+      pct:Math.min(y*7, 90)};
+    if(oakDusunul) return {risk:'moderate',title:'Orta Risk – OAK Düşünülmelidir',
+      detail:`CHA₂DS₂-VASc: ${s}. Yıllık inme riski ~%${y}. Oral antikoagülasyon düşünülmelidir (Sınıf IIa) – hasta tercihi ve kanama riski ile birlikte karar verilir. ${cinsNot}`.trim(),
+      pct:Math.min(y*7, 90)};
+    return {risk:'low',title:'Düşük Risk – OAK Önerilmez',
+      detail:`CHA₂DS₂-VASc: ${s}. Yıllık inme riski ~%${y}. Antitrombotik tedavi önerilmez. ${kadin ? 'Yalnızca kadın cinsiyetinden gelen 1 puan, tek başına antikoagülasyon endikasyonu oluşturmaz.' : ''}`.trim(),
+      pct:Math.max(y*7, 2)};
   },
   chartType:'gauge', maxScore:9
 },
