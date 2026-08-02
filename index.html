@@ -94,6 +94,16 @@ textarea.form-input{resize:vertical;min-height:75px}
 .fw-tab:not(.active):hover{background:#e2e8f0;color:#64748b}
 .reminder-card{border-radius:12px;padding:14px 18px;border-left:4px solid;transition:all .3s ease}
 .reminder-card:hover{transform:translateX(3px)}
+.qf-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .18s ease;line-height:1.5}
+.qf-btn:hover{border-color:#94a3b8;color:#334155;background:#f8fafc}
+.qf-btn.qf-active{background:#0d9488;border-color:#0d9488;color:#fff}
+.qf-btn.qf-active:hover{background:#0f766e;border-color:#0f766e}
+.chip-btn{font-size:11px;font-weight:600;padding:5px 11px;border-radius:999px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .18s ease;line-height:1.5}
+.chip-btn:hover{border-color:#10b981;color:#059669;background:#f0fdf4}
+.chip-btn.chip-active{background:#10b981;border-color:#10b981;color:#fff}
+.chip-btn.chip-active:hover{background:#059669;border-color:#059669}
+.today-btn{font-size:11px;font-weight:700;padding:0 14px;border-radius:10px;border:1.5px solid #0d9488;background:#0d9488;color:#fff;cursor:pointer;white-space:nowrap;transition:all .18s ease}
+.today-btn:hover{background:#0f766e;border-color:#0f766e}
 </style>
 </head>
 <body class="bg-clinical-50 text-clinical-800 min-h-screen flex flex-col">
@@ -1641,7 +1651,7 @@ sbpsaape: {
         {id:'s_complaint',label:'Ana Şikayet ve Süresi',type:'text',placeholder:'Örn: 2 saattir şiddetli baskı tarzı göğüs ağrısı'},
         {id:'s_general',label:'Genel Durum',type:'select',options:['İyi','Orta','Kötü','Çok Kötü'],half:true},
         {id:'s_consciousness',label:'Bilinç',type:'select',options:['Açık (Alert)','Konfü','Sesle Uyarılır (V)','Ağrıyla Uyarılır (P)','Yanıtsız (U)'],half:true},
-        {id:'s_appearance',label:'Görünüm',type:'text',placeholder:'Örn: Sıkıntılı, terli, soluk görünüyor'},
+        {id:'s_appearance',label:'Görünüm',type:'text',placeholder:'Örn: Sıkıntılı, terli, soluk görünüyor',quick:['Genel durumu iyi','Özellik yok']},
         {type:'vitals',label:'Vital Bulgular'}
       ]
     },
@@ -1650,11 +1660,11 @@ sbpsaape: {
       hint:'Kısa tıbbi geçmiş, ilaçlar, son 24-48 saat, yakın tetkikler',
       reminder:'Hastanın geçmişini özetleyin. Kronik hastalıklar, düzenli ilaçlar, alerjiler ve son dönemdeki değişikliklere odaklanın.',
       fields:[
-        {id:'b_history',label:'Tıbbi Geçmiş (Kronik Hastalıklar)',type:'textarea',placeholder:'Örn: Hipertansiyon, Tip 2 DM, KOAH, KKY...'},
-        {id:'b_meds',label:'Kullandığı İlaçlar',type:'textarea',placeholder:'Örn: Ramipril 10 mg, Metformin 1000 mg 2x1...'},
-        {id:'b_allergies',label:'Alerji',type:'text',placeholder:'Bilinen ilaç/besin alerjisi'},
-        {id:'b_recent',label:'Son 24-48 Saat',type:'textarea',placeholder:'Son dönemdeki değişiklikler, tetikleyici faktörler...'},
-        {id:'b_tests',label:'Yakın Dönem Tetkikler',type:'textarea',placeholder:'Yakın zamanda yapılan tetkik/görüntüleme sonuçları...'}
+        {id:'b_history',label:'Tıbbi Geçmiş (Kronik Hastalıklar)',type:'textarea',placeholder:'Örn: Hipertansiyon, Tip 2 DM, KOAH, KKY...',chips:['Hipertansiyon','Diyabet (Tip 2)','KOAH','Astım','Koroner Arter Hastalığı','Kalp Yetmezliği','Atriyal Fibrilasyon','Kronik Böbrek Hastalığı','Serebrovasküler Hastalık','Malignite','Hipotiroidi','Epilepsi','Demans','Karaciğer Hastalığı'],quick:['Bilinen kronik hastalığı yok']},
+        {id:'b_meds',label:'Kullandığı İlaçlar',type:'textarea',placeholder:'Örn: Ramipril 10 mg, Metformin 1000 mg 2x1...',quick:['İlaç kullanmıyor','Bilinmiyor']},
+        {id:'b_allergies',label:'Alerji',type:'text',placeholder:'Bilinen ilaç/besin alerjisi',quick:['Bilinen alerjisi yok','Bilinmiyor']},
+        {id:'b_recent',label:'Son 24-48 Saat',type:'textarea',placeholder:'Son dönemdeki değişiklikler, tetikleyici faktörler...',quick:['Özellik yok']},
+        {id:'b_tests',label:'Yakın Dönem Tetkikler',type:'textarea',placeholder:'Yakın zamanda yapılan tetkik/görüntüleme sonuçları...',quick:['Yok']}
       ]
     },
     {
@@ -1662,12 +1672,12 @@ sbpsaape: {
       hint:'Sistemik muayene + özel muayeneler + POCUS',
       reminder:'Pozitif ve önemli negatif bulguları belirtin. POCUS kullandıysanız bulgularını ekleyin. EKG yorumunu mutlaka paylaşın.',
       fields:[
-        {id:'p_head',label:'Baş-Boyun',type:'text',placeholder:'Örn: Pupiller izokorik, ense sertliği yok'},
-        {id:'p_chest',label:'Göğüs / Kardiyovasküler',type:'textarea',placeholder:'Örn: Kalp S1-S2 ritmik, ek ses yok. AC bazal ince raller'},
-        {id:'p_abdomen',label:'Karın',type:'textarea',placeholder:'Örn: Defans yok, hassasiyet yok, bağırsak sesleri normal'},
-        {id:'p_extremity',label:'Ekstremite / Nörolojik',type:'text',placeholder:'Örn: Motor-duyusal defisit yok'},
-        {id:'p_ekg',label:'EKG Bulguları',type:'textarea',placeholder:'Örn: NSR, V1-V4 ST depresyonu 1 mm'},
-        {id:'p_pocus',label:'POCUS Bulguları',type:'textarea',placeholder:'Örn: EF %50-55, efüzyon yok, B hattı artışı'}
+        {id:'p_head',label:'Baş-Boyun',type:'text',placeholder:'Örn: Pupiller izokorik, ense sertliği yok',quick:['Özellik yok','Doğal']},
+        {id:'p_chest',label:'Göğüs / Kardiyovasküler',type:'textarea',placeholder:'Örn: Kalp S1-S2 ritmik, ek ses yok. AC bazal ince raller',quick:['Özellik yok','Doğal']},
+        {id:'p_abdomen',label:'Karın',type:'textarea',placeholder:'Örn: Defans yok, hassasiyet yok, bağırsak sesleri normal',quick:['Özellik yok','Doğal']},
+        {id:'p_extremity',label:'Ekstremite / Nörolojik',type:'text',placeholder:'Örn: Motor-duyusal defisit yok',quick:['Özellik yok','Doğal']},
+        {id:'p_ekg',label:'EKG Bulguları',type:'textarea',placeholder:'Örn: NSR, V1-V4 ST depresyonu 1 mm',quick:['Normal sinüs ritmi','Özellik yok','Çekilmedi']},
+        {id:'p_pocus',label:'POCUS Bulguları',type:'textarea',placeholder:'Örn: EF %50-55, efüzyon yok, B hattı artışı',quick:['Yapılmadı','Özellik yok']}
       ]
     },
     {
@@ -1695,7 +1705,7 @@ sbpsaape: {
         {id:'a_diff1',label:'Ayırıcı Tanı 1',type:'text',placeholder:'Örn: Pulmoner emboli'},
         {id:'a_diff2',label:'Ayırıcı Tanı 2',type:'text',placeholder:'Örn: Aort diseksiyonu'},
         {id:'a_diff3',label:'Ayırıcı Tanı 3',type:'text',placeholder:'Örn: Gastroözofageal reflü'},
-        {id:'a_diff_notes',label:'Ayırıcı Tanı Notları',type:'textarea',placeholder:'Lehine/aleyhine kanıtlar...'}
+        {id:'a_diff_notes',label:'Ayırıcı Tanı Notları',type:'textarea',placeholder:'Lehine/aleyhine kanıtlar...',quick:['Ek not yok']}
       ]
     },
     {
@@ -1705,8 +1715,8 @@ sbpsaape: {
       fields:[
         {id:'ask_q1',label:'1. Kritik Soru',type:'textarea',placeholder:'Örn: Hocam, troponin trendini nasıl takip edelim?'},
         {id:'ask_q2',label:'2. Kritik Soru',type:'textarea',placeholder:'Örn: D-dimer yüksek olduğu için BTPA çekelim mi?'},
-        {id:'ask_q3',label:'3. Kritik Soru (Opsiyonel)',type:'textarea',placeholder:'Varsa ek sorular...'},
-        {id:'ask_uncertainty',label:'Belirsizlik / Endişe Alanları',type:'textarea',placeholder:'Karar vermekte zorlandığınız noktalar...'}
+        {id:'ask_q3',label:'3. Kritik Soru (Opsiyonel)',type:'textarea',placeholder:'Varsa ek sorular...',quick:['Ek soru yok']},
+        {id:'ask_uncertainty',label:'Belirsizlik / Endişe Alanları',type:'textarea',placeholder:'Karar vermekte zorlandığınız noktalar...',quick:['Belirsizlik yok']}
       ]
     },
     {
@@ -1716,7 +1726,7 @@ sbpsaape: {
       fields:[
         {id:'pl_tests',label:'İstenen Tetkikler',type:'textarea',placeholder:'Örn: Tam kan, CRP, troponin, D-dimer, kan gazı...'},
         {id:'pl_treatment',label:'Tedavi',type:'textarea',placeholder:'Örn: ASA 300 mg, heparin infüzyonu, IV analjezi...'},
-        {id:'pl_consult',label:'Konsültasyon',type:'textarea',placeholder:'Örn: Kardiyoloji konsültasyonu isteniyor'},
+        {id:'pl_consult',label:'Konsültasyon',type:'textarea',placeholder:'Örn: Kardiyoloji konsültasyonu isteniyor',quick:['Konsültasyon gerekmedi']},
         {id:'pl_disposition',label:'Yatış / Taburcu Kararı',type:'select',options:['Gözlem','Servis Yatışı','Yoğun Bakım Yatışı','Ameliyathane','Taburcu','Sevk']},
         {id:'pl_disposition_detail',label:'Yatış/Taburcu Detayı',type:'textarea',placeholder:'Örn: Koroner yoğun bakım yatışı planlanıyor'},
         {id:'pl_followup',label:'Takip Planı',type:'textarea',placeholder:'Örn: Troponin 3 saatte bir, taburcu kriteri...'}
@@ -2045,14 +2055,75 @@ function renderActiveForm(idx) {
 // =========================================================
 // FIELD RENDERERS
 // =========================================================
+let FIELD_DEFS = null;
+function fieldDef(id){
+  if(!FIELD_DEFS){
+    FIELD_DEFS = {};
+    Object.keys(frameworks).forEach(k=>frameworks[k].steps.forEach(st=>st.fields.forEach(f=>{ if(f.id) FIELD_DEFS[f.id]=f; })));
+  }
+  return FIELD_DEFS[id];
+}
+function escAttr(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Coklu secim cipleri (kronik hastaliklar vb.)
+function renderChips(f){
+  if(!f.chips || !f.chips.length) return '';
+  const cur = (formData[f.id]||'').split(',').map(x=>x.trim()).filter(Boolean);
+  return `<div class="flex flex-wrap gap-1.5 mb-2">${f.chips.map((c,i)=>
+    `<button type="button" class="chip-btn ${cur.indexOf(c)>-1?'chip-active':''}" onclick="toggleChip('${f.id}',${i},this)">${escAttr(c)}</button>`
+  ).join('')}</div>`;
+}
+// Hizli doldurma butonlari ("Yok", "Dogal", "Ozellik yok" ...)
+function renderQuick(f){
+  if(!f.quick || !f.quick.length) return '';
+  const cur = formData[f.id]||'';
+  return `<div class="flex flex-wrap gap-1.5 mt-2">${f.quick.map((q,i)=>
+    `<button type="button" class="qf-btn ${cur===q?'qf-active':''}" onclick="quickFill('${f.id}',${i})">${escAttr(q)}</button>`
+  ).join('')}</div>`;
+}
+function quickFill(id, idx){
+  const f = fieldDef(id); if(!f || !f.quick) return;
+  const v = f.quick[idx];
+  const nv = (formData[id]===v) ? '' : v;   // ayni butona tekrar basinca temizler
+  const el = document.getElementById(id);
+  if(el) el.value = nv;
+  saveField(id, nv);
+  const wrap = el ? el.parentElement : null;
+  if(wrap){
+    wrap.querySelectorAll('.qf-btn').forEach((b,i)=>b.classList.toggle('qf-active', i===idx && nv!==''));
+    wrap.querySelectorAll('.chip-btn').forEach(b=>b.classList.remove('chip-active'));
+  }
+}
+function toggleChip(id, idx, btn){
+  const f = fieldDef(id); if(!f || !f.chips) return;
+  const label = f.chips[idx];
+  let cur = (formData[id]||'').split(',').map(x=>x.trim()).filter(Boolean);
+  const pos = cur.indexOf(label);
+  if(pos>-1) cur.splice(pos,1); else cur.push(label);
+  const nv = cur.join(', ');
+  const el = document.getElementById(id);
+  if(el) el.value = nv;
+  saveField(id, nv);
+  btn.classList.toggle('chip-active', pos===-1);
+  const wrap = el ? el.parentElement : null;
+  if(wrap) wrap.querySelectorAll('.qf-btn').forEach(b=>b.classList.remove('qf-active'));
+}
+function setToday(id){
+  const v = getTodayDate();
+  const el = document.getElementById(id);
+  if(el) el.value = v;
+  saveField(id, v);
+}
+
 function renderField(f) {
   const span = f.half ? '' : 'md:col-span-2';
   const val = formData[f.id] || '';
-  if(f.type === 'textarea') return `<div class="${span}"><label class="form-label" for="${f.id}">${f.label}</label><textarea id="${f.id}" class="form-input" placeholder="${f.placeholder||''}" oninput="saveField('${f.id}',this.value)">${val}</textarea></div>`;
+  const chips = renderChips(f), quick = renderQuick(f);
+  if(f.type === 'textarea') return `<div class="${span}"><label class="form-label" for="${f.id}">${f.label}</label>${chips}<textarea id="${f.id}" class="form-input" placeholder="${f.placeholder||''}" oninput="saveField('${f.id}',this.value)">${val}</textarea>${quick}</div>`;
   if(f.type === 'select') return `<div class="${span}"><label class="form-label" for="${f.id}">${f.label}</label><select id="${f.id}" class="form-input" onchange="saveField('${f.id}',this.value)"><option value="">Seçiniz...</option>${f.options.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
   if(f.type === 'number') return `<div class="${span}"><label class="form-label" for="${f.id}">${f.label}</label><input type="number" id="${f.id}" class="form-input" placeholder="${f.placeholder||''}" value="${val}" oninput="saveField('${f.id}',this.value)"></div>`;
-  if(f.type === 'date') return `<div class="${span}"><label class="form-label" for="${f.id}">${f.label}</label><input type="date" id="${f.id}" class="form-input" value="${val}" onchange="saveField('${f.id}',this.value)"></div>`;
-  return `<div class="${span}"><label class="form-label" for="${f.id}">${f.label}</label><input type="text" id="${f.id}" class="form-input" placeholder="${f.placeholder||''}" value="${val}" oninput="saveField('${f.id}',this.value)"></div>`;
+  if(f.type === 'date') return `<div class="${span}"><label class="form-label" for="${f.id}">${f.label}</label><div class="flex gap-2 items-stretch"><input type="date" id="${f.id}" class="form-input" value="${val}" onchange="saveField('${f.id}',this.value)"><button type="button" class="today-btn" onclick="setToday('${f.id}')">Bugün</button></div></div>`;
+  return `<div class="${span}"><label class="form-label" for="${f.id}">${f.label}</label>${chips}<input type="text" id="${f.id}" class="form-input" placeholder="${f.placeholder||''}" value="${val}" oninput="saveField('${f.id}',this.value)">${quick}</div>`;
 }
 
 function renderVitals() {
@@ -2164,7 +2235,16 @@ function getTodayDate() {
   return d.toISOString().split("T")[0];
 }
 
+const RECORDS_PASSWORD = "mertkartal";
 function openRecordsModal() {
+  // Not: istemci tarafi sifre, ortak kullanilan bilgisayarda kayitlarin
+  // kazara acilmasini engellemek icindir; gercek guvenlik saglamaz.
+  if (sessionStorage.getItem("veah_records_unlocked") !== "1") {
+    const girilen = prompt("Kayıtlara erişim şifresi:");
+    if (girilen === null) return;
+    if (girilen !== RECORDS_PASSWORD) { alert("Şifre hatalı."); return; }
+    sessionStorage.setItem("veah_records_unlocked", "1");
+  }
   renderRecordsList();
   document.getElementById("records-modal").classList.remove("hidden");
 }
@@ -2255,8 +2335,12 @@ function saveRecord() {
   const tc = formData["p_tc"] || formData["sbar_s_tc"] || formData["sn_s_tc"] || "-";
   const date = formData["p_date"] || formData["sbar_s_date"] || formData["sn_s_date"] || getTodayDate();
   
-  // Asistan adini otomatik ayarla (prompt ile sormayi kaldirdik)
-  let asistanAdi = localStorage.getItem('veah_asistan_adi') || "Belirtilmedi";
+  // Sunumu yapan hekimin adini sor; onceki ad varsayilan olarak gelir
+  const oncekiAd = localStorage.getItem('veah_asistan_adi') || "";
+  const girilenAd = prompt("Sunumu yapan hekimin adı soyadı:", oncekiAd);
+  if (girilenAd === null) return;                     // iptal edildi, kayit yapilmaz
+  const asistanAdi = girilenAd.trim() || "Belirtilmedi";
+  localStorage.setItem('veah_asistan_adi', asistanAdi);
 
   const records = JSON.parse(localStorage.getItem("veah_records") || "[]");
   
@@ -2266,6 +2350,7 @@ function saveRecord() {
     date: date,
     name: name,
     tc: tc,
+    doctor: asistanAdi,
     framework: currentFW,
     data: JSON.parse(JSON.stringify(formData))
   };
@@ -2338,11 +2423,12 @@ function renderRecordsList() {
       <div>
         <div class="flex items-center gap-2 mb-1">
           <span class="font-bold text-clinical-800 text-sm">${r.name}</span>
-          <span class="text-[10px] bg-clinical-100 text-clinical-500 px-2 py-0.5 rounded-full">TC: ${r.tc}</span>
+          <span class="text-[10px] bg-clinical-100 text-clinical-500 px-2 py-0.5 rounded-full">ID: ${r.tc}</span>
         </div>
         <div class="flex items-center gap-3 text-[11px] text-clinical-500">
           <span>📅 ${r.date}</span>
           <span class="font-semibold text-indigo-600">📋 ${r.framework.toUpperCase()}</span>
+          ${r.doctor ? `<span>🩺 ${r.doctor}</span>` : ''}
         </div>
       </div>
       <div class="flex gap-2">

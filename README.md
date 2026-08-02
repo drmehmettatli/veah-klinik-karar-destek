@@ -46,6 +46,14 @@ Van EAH Acil Tıp Kliniği tarafından geliştirilmiş 8 adımlı yapılandırı
 
 Her adımda hatırlatıcı ipuçları, vital bulgu girişi, skorlama entegrasyonu, kayıt saklama ve yazdırılabilir önizleme.
 
+**Hızlı Giriş**
+
+Acil serviste yazma süresini kısaltmak için:
+
+- **Tarih alanında "Bugün" butonu** — tek tıkla bugünün tarihini doldurur.
+- **Kronik hastalık butonları** — Arka Plan adımında 14 sık kronik hastalık (HT, DM, KOAH, KAH, KKY, AF, KBH vb.) tek tıkla eklenir/çıkarılır; seçimler virgülle ayrılmış metne dönüşür.
+- **"Yok" / "Doğal" / "Özellik yok" butonları** — ilaç, alerji, fizik muayene, konsültasyon gibi 15 alanda hazır yanıtlar. Aynı butona tekrar basmak alanı temizler.
+
 ---
 
 ## Kullanım
@@ -74,6 +82,10 @@ Tek bir `index.html` dosyasından oluşur; derleme adımı yoktur.
 ### Veri Mahremiyeti
 
 Hasta kimliği için **TC Kimlik No yerine kurum içi "Hasta ID" / protokol numarası** alanı kullanılır. Doğrudan kimlik belirleyici veri girilmemesi önerilir. Uygulama herkese açık bir adreste yayınlandığında, forma dışarıdan da veri girilebileceği unutulmamalıdır.
+
+Kayıt sırasında **sunumu yapan hekimin adı** sorulur ve kayda işlenir; bu ad tarayıcıda saklanır, sonraki kayıtlarda varsayılan olarak gelir.
+
+**Kayıtlar ekranı bir şifre ile korunur.** Ancak bu şifre istemci tarafında, açık kaynak koduna gömülü olarak tutulur — yani bu depoya erişebilen herkes şifreyi okuyabilir. Amacı yalnızca **ortak kullanılan bir bilgisayarda kayıtların kazara veya meraktan açılmasını engellemektir**; şifrelenmiş bir koruma değildir. Gerçek erişim denetimi gereken ortamlarda uygulamanın sunucu tarafı kimlik doğrulaması olan bir sürümü kullanılmalıdır.
 
 ---
 
