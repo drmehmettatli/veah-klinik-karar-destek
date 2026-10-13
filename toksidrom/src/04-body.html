@@ -37,7 +37,7 @@
           <div class="field"><label for="p_meds">Kronik ilaçlar / evdeki ilaçlar</label><input id="p_meds" placeholder="SSRI, metformin, digoksin…"></div>
           <div class="field"><label for="p_hx">Ek öykü</label><input id="p_hx" placeholder="psikiyatrik öykü, önceki alım, ortamda bulunanlar…"></div>
         </div>
-        <div class="field" style="margin-top:12px"><label>Öykü bulguları (ayrım motoruna girer)</label><div class="tags" id="hxTags"></div></div>
+        <div class="field" style="margin-top:12px"><span class="lbl">Öykü bulguları (ayrım motoruna girer)</span><div class="tags" id="hxTags" role="group" aria-label="Öykü bulguları"></div></div>
       </div>
       <div class="card">
         <h3>Kayıtlı vakalar</h3>
@@ -47,7 +47,7 @@
           <button class="btn sm" id="btnExport" type="button">Vakayı JSON olarak kopyala</button>
           <button class="btn sm" id="btnImport" type="button">JSON yapıştır ve yükle</button>
         </div>
-        <textarea id="importBox" hidden placeholder="JSON'u buraya yapıştırın" style="margin-top:8px;width:100%"></textarea>
+        <textarea id="importBox" hidden aria-label="Vaka JSON metni" placeholder="JSON'u buraya yapıştırın" style="margin-top:8px;width:100%"></textarea>
       </div>
     </section>
 
@@ -65,14 +65,14 @@
       </div>
       <div class="card">
         <h3>Mental durum ve genel görünüm</h3>
-        <div class="tags" id="mentalTags"></div>
+        <div class="tags" id="mentalTags" role="group" aria-label="Mental durum bulguları"></div>
       </div>
     </section>
 
     <!-- ========== FİZİK MUAYENE ========== -->
     <section class="view" data-view="exam">
       <div class="view-head"><div><h2>Fizik muayene — vücut haritası</h2><p>Bölgeye tıklayın, bulguyu <b>Var</b> veya <b>Yok</b> olarak işaretleyin. "Yok" işaretleri de ayrımı güçlendirir (örn. terleme yok → antikolinerjik lehine).</p></div></div>
-      <div class="view-switch" id="viewSwitch">
+      <div class="view-switch" id="viewSwitch" role="group" aria-label="Figür görünümü">
         <button type="button" data-v="front" class="active">Ön</button>
         <button type="button" data-v="back">Arka</button>
         <button type="button" data-v="face">Yüz / pupiller</button>
@@ -106,7 +106,7 @@
             <div class="field"><label for="e_axis">Terminal aks</label><select id="e_axis"><option value="">—</option><option value="normal">Normal</option><option value="right">Sağ (terminal 40 ms)</option><option value="left">Sol</option></select></div>
             <div class="field"><label for="e_k">Potasyum <span class="unit">mmol/L</span></label><input id="e_k" type="number" step="0.1" inputmode="decimal"></div>
           </div>
-          <div class="field" style="margin-top:12px"><label>Morfolojik bulgular</label><div class="tags" id="ecgTags"></div></div>
+          <div class="field" style="margin-top:12px"><span class="lbl">Morfolojik bulgular</span><div class="tags" id="ecgTags" role="group" aria-label="EKG morfolojik bulguları"></div></div>
         </div>
         <div class="card">
           <h3>Yorum</h3>
@@ -186,7 +186,7 @@
             <div class="field"><label for="l_wbc">Lökosit <span class="unit">×10³</span></label><input id="l_wbc" type="number" step="0.1" inputmode="decimal"></div>
           </div>
           <div class="result" id="levelsOut"><span class="sub">Düzeyler eşiklerle yorumlanır.</span></div>
-          <div class="field" style="margin-top:12px"><label>Diğer laboratuvar bulguları</label><div class="tags" id="labTags"></div></div>
+          <div class="field" style="margin-top:12px"><span class="lbl">Diğer laboratuvar bulguları</span><div class="tags" id="labTags" role="group" aria-label="Diğer laboratuvar bulguları"></div></div>
         </div>
         <div class="card">
           <h3>Digoksin-Fab flakon hesabı</h3>
@@ -194,7 +194,7 @@
             <div class="field"><label for="f_level">Serum digoksin <span class="unit">ng/mL</span></label><input id="f_level" type="number" step="0.1" inputmode="decimal"></div>
             <div class="field"><label for="f_mg">Alınan digoksin <span class="unit">mg</span></label><input id="f_mg" type="number" step="0.25" inputmode="decimal"></div>
           </div>
-          <div class="result" id="fabOut"><span class="sub">Kilo Hasta sekmesinden alınır.</span></div>
+          <div class="result" id="fabOut"><span class="sub">Kilo, Hasta &amp; öykü sekmesinden alınır.</span></div>
         </div>
         <div class="card">
           <h3>Nalokson / NAC / HIE hızlı doz</h3>

@@ -41,8 +41,10 @@ const store = {
 const num = v => (v===""||v==null||isNaN(+v)) ? null : +v;
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200); }
 function setFinding(id, val){ if(val===0||val==null) delete S.findings[id]; else S.findings[id]=val; S.skipped=S.skipped.filter(x=>x!==id); refresh(); }
-function getFinding(id){ return S.findings[id] ?? (auto[id] ? 1 : 0); }
-function effectiveFindings(){ const f={...Object.fromEntries(Object.keys(auto).map(k=>[k,1])), ...S.findings}; return f; }
+function getFinding(id){ return auto[id] ?? S.findings[id] ?? 0; }
+// Ölçümden türetilen bulgular (auto, ±1) manuel/soru yanıtlarını ezer: ölçüm varsa ölçüm geçerlidir.
+function effectiveFindings(){ return {...S.findings, ...auto}; }
+const wtKg = () => { const w=num(S.patient.wt); return (w!=null && w>0 && w<=300) ? w : null; };
 
 /* ---------- puanlama ---------- */
 function score(){
@@ -76,52 +78,54 @@ const VITAL_DEF = [
 ];
 function deriveAuto(){
   auto = {};
-  const v = S.vitals, n = num;
-  if (n(v.hr)!=null){ if (v.hr>100) auto.tachy=1; if (v.hr<60) auto.brady=1; }
-  if (n(v.sbp)!=null){ if (v.sbp>140) auto.htn=1; if (v.sbp<90) auto.hypot=1; }
-  if (n(v.rr)!=null){ if (v.rr>20) auto.tachypnea=1; if (v.rr<12) auto.bradypnea=1; }
-  if (n(v.temp)!=null){ if (v.temp>38) auto.hyperth=1; if (v.temp<35) auto.hypoth=1; }
-  if (n(v.spo2)!=null && v.spo2<94) auto.hypoxia=1;
-  if (n(v.glu)!=null){ if (v.glu<70) auto.hypogly=1; if (v.glu>200) auto.hypergly=1; }
-  if (n(v.etco2)!=null && v.etco2>50) auto.hypercap=1;
-  const g = gcs(); if (g!=null && g<=8) auto.coma=1;
+  const set=(id,c)=>{ auto[id]=c?1:-1; };   // ölçüm varsa bulgu ya var (1) ya yok (-1)
+  const v = S.vitals, e = S.ecg, L = S.lab, n = num;
+  const hrs=[n(v.hr),n(e.hr)].filter(x=>x!=null);
+  if (hrs.length){ set("tachy", hrs.some(h=>h>100)); set("brady", hrs.some(h=>h<60)); }
+  if (n(v.sbp)!=null){ set("htn", v.sbp>140); set("hypot", v.sbp<90); }
+  if (n(v.rr)!=null){ set("tachypnea", v.rr>20); set("bradypnea", v.rr<12); }
+  if (n(v.temp)!=null){ set("hyperth", v.temp>38); set("hypoth", v.temp<35); }
+  if (n(v.spo2)!=null) set("hypoxia", v.spo2<94);
+  const glu = n(v.glu) ?? n(L.glu);
+  if (glu!=null){ set("hypogly", glu<70); set("hypergly", glu>200); }
+  if (n(v.etco2)!=null) set("hypercap", v.etco2>50);
+  const g = gcs(); if (g!=null) set("coma", g<=8);
   // EKG
-  const e = S.ecg;
-  if (n(e.hr)!=null){ if (e.hr>100) auto.tachy=1; if (e.hr<60) auto.brady=1; }
-  if (n(e.qrs)!=null){ if (e.qrs>=100) auto.qrswide=1; if (e.qrs>=160) auto.qrsvwide=1; }
-  const q = qtc(); if (q && q.fridericia>500) auto.qtlong=1;
-  if (n(e.avr)!=null && e.avr>=3) auto.avrR=1;
-  if (n(e.avrrs)!=null && e.avrrs>0.7) auto.avrR=1;
-  if (e.axis==="right") auto.raxis=1;
-  if (e.rhythm==="Bidireksiyonel VT") auto.bidirVT=1;
+  if (n(e.qrs)!=null){ set("qrswide", e.qrs>=100); if (e.qrs>=160) auto.qrsvwide=1; }   // ≥160 bir şiddet belirteci; yokluğu ceza vermez
+  const q = qtc(); if (q) set("qtlong", q.fridericia>500);
+  if (n(e.avr)!=null || n(e.avrrs)!=null) set("avrR", (n(e.avr)!=null && e.avr>=3) || (n(e.avrrs)!=null && e.avrrs>0.7));
+  if (e.axis) set("raxis", e.axis==="right");
+  // ritim seçimi yalnız pozitif kanıt verir (ektopi vb. sinüs ritmiyle birlikte olabilir)
+  if (e.rhythm==="Bidireksiyonel VT"){ auto.bidirVT=1; auto.ectopy=1; }
   if (e.rhythm==="Atriyal taşikardi + blok") auto.atachblock=1;
   if (e.rhythm==="Tam AV blok") auto.avblock=1;
   if (e.rhythm==="Torsades"){ auto.torsades=1; auto.qtlong=1; }
   if (e.rhythm==="VT"||e.rhythm==="Geniş kompleks taşikardi") auto.ectopy=1;
   if (e.rhythm==="Sinüs bradikardisi"||e.rhythm==="Kavşak ritmi") auto.sinusbrady=1;
   if (e.rhythm==="Atriyal fibrilasyon") auto.irregular=1;
-  const kk = n(e.k) ?? n(S.lab.k);
-  if (kk!=null){ if (kk<3.5) auto.hypoK=1; if (kk>5.5) auto.hyperK=1; }
+  const kk = n(e.k) ?? n(L.k);
+  if (kk!=null){ set("hypoK", kk<3.5); set("hyperK", kk>5.5); }
   // Lab
-  const L = S.lab, ag = anionGap();
-  if (ag && ag.ag>12 && n(L.hco3)!=null && L.hco3<22) auto.agacid=1;
-  const og = osmGap(); if (og && og.gap>10) auto.osmgap=1;
-  if (n(L.lac)!=null && L.lac>8) auto.lactate=1;
-  if (n(L.ph)!=null && n(L.pco2)!=null && n(L.hco3)!=null && L.hco3<22 && L.pco2<35 && L.ph>=7.38) auto.respalk=1;
-  if (n(L.ca)!=null && L.ca<1.1) auto.hypoCa=1;
-  if (n(L.cr)!=null && L.cr>1.3) auto.aki=1;
-  if (n(L.ck)!=null && L.ck>1000) auto.ckhigh=1;
-  if (n(L.wbc)!=null && L.wbc>11) auto.leuko=1;
-  if (n(L.methb)!=null && L.methb>3) auto.methb=1;
-  if (n(L.cohb)!=null && L.cohb>5) auto.cohb=1;
-  if (n(L.sali)!=null && L.sali>30) auto.salilevel=1;
-  if (n(L.digi)!=null && L.digi>2) auto.digilevel=1;
-  if (n(L.li)!=null && L.li>1.5) auto.lilevel=1;
-  if (n(L.etoh)!=null && L.etoh>80) auto.etohlevel=1;
-  if (n(L.alt)!=null && L.alt>100) auto.lfthigh=1;
-  if (n(L.na)!=null && L.na<135) auto.hypoNa=1;
-  const rm = rumack(); if (rm && rm.above) auto.apaplevel=1;
-  if (n(L.glu)!=null && n(S.vitals.glu)==null){ if (L.glu<70) auto.hypogly=1; if (L.glu>200) auto.hypergly=1; }
+  const ag = anionGap();
+  if (ag) set("agacid", ag.agEff>12 && L.hco3<22);
+  const og = osmGap(); if (og) set("osmgap", og.gap>10);
+  if (n(L.lac)!=null) set("lactate", L.lac>8);
+  // Winter: beklenen pCO2 = 1,5×HCO3 + 8 (±2); ölçülen bunun >2 altındaysa eşlik eden respiratuvar alkaloz (pH şartı yok).
+  // Saf respiratuvar alkaloz (erken salisilat) da sayılır.
+  if (n(L.pco2)!=null && n(L.hco3)!=null) set("respalk", (L.hco3<22 && L.pco2 < (1.5*L.hco3+8)-2) || (n(L.ph)!=null && L.ph>7.45 && L.pco2<35));
+  if (n(L.ca)!=null) set("hypoCa", L.ca<1.1);
+  if (n(L.cr)!=null) set("aki", L.cr>1.3);
+  if (n(L.ck)!=null) set("ckhigh", L.ck>1000);
+  if (n(L.wbc)!=null) set("leuko", L.wbc>11);
+  if (n(L.methb)!=null) set("methb", L.methb>3);
+  if (n(L.cohb)!=null) set("cohb", L.cohb>5);
+  if (n(L.sali)!=null) set("salilevel", L.sali>30);
+  if (n(L.digi)!=null) set("digilevel", L.digi>2);
+  if (n(L.li)!=null) set("lilevel", L.li>1.5);
+  if (n(L.etoh)!=null) set("etohlevel", L.etoh>80);
+  if (n(L.alt)!=null) set("lfthigh", L.alt>100);
+  if (n(L.na)!=null) set("hypoNa", L.na<135);
+  const rm = rumack(); if (rm && rm.valid) set("apaplevel", rm.above);
 }
 function gcs(){ const {gcsE,gcsV,gcsM}=S.vitals; if(gcsE===""||gcsV===""||gcsM==="") return null; return +gcsE + +gcsV + +gcsM; }
 
@@ -136,9 +140,10 @@ function anionGap(){
   const na=num(S.lab.na), cl=num(S.lab.cl), h=num(S.lab.hco3); if(na==null||cl==null||h==null) return null;
   const ag = na-cl-h, alb=num(S.lab.alb);
   const agc = alb!=null ? ag + 2.5*(4-alb) : null;
-  const delta = (ag-12)/(24-h);
+  const agEff = agc ?? ag;              // karar albümin düzeltilmiş değere göre
+  const delta = (agEff-12)/(24-h);
   const winter = 1.5*h+8;
-  return { ag, agc, delta, winter };
+  return { ag, agc, agEff, delta, winter };
 }
 function osmGap(){
   const osm=num(S.lab.osm), na=num(S.lab.na), glu=num(S.lab.glu), bun=num(S.lab.bun), et=num(S.lab.etoh)||0;
@@ -162,12 +167,12 @@ function showView(id){ S.view=id; $$(".view").forEach(v=>v.classList.toggle("act
 
 /* ---------- render: etiket grupları ---------- */
 function tagHTML(id){
-  const f=FINDING_BY_ID[id]; const v=S.findings[id]; const a=auto[id];
-  const cls = v>0?"on":v<0?"on neg":a?"on":"";
-  return `<span class="tag ${cls}" data-f="${id}" title="${esc(f.q||'')}">${esc(f.label)}${a&&!v?'<span class="k">oto</span>':''}${v<0?'<span class="k">yok</span>':''}</span>`;
+  const f=FINDING_BY_ID[id]; const a=auto[id]; const v=a ?? S.findings[id];
+  const cls = v>0?"on":v<0?"on neg":"";
+  return `<button type="button" class="tag ${cls}${a?' auto':''}" data-f="${id}" aria-pressed="${v>0?'true':'false'}" title="${esc((a?'Ölçümden türetildi. ':'')+(f.q||''))}">${esc(f.label)}${a?'<span class="k">oto</span>':''}${v<0?'<span class="k">yok</span>':''}</button>`;
 }
 function renderTags(sel, ids){ $(sel).innerHTML = ids.map(tagHTML).join(""); }
-function cycleTag(id){ const v=S.findings[id]||0; setFinding(id, v===0?1 : v===1?-1 : 0); }
+function cycleTag(id){ if (auto[id]!=null){ toast("Bu bulgu ölçümden türetiliyor; değeri ilgili ölçüm alanından değiştirin"); return; } const v=S.findings[id]||0; setFinding(id, v===0?1 : v===1?-1 : 0); }
 
 /* ---------- render: vitaller ---------- */
 function renderVitals(){
@@ -185,8 +190,9 @@ function renderVitals(){
   ["gcsE","gcsV","gcsM"].forEach(k=>{ $("#v_"+k).value=S.vitals[k]; });
   const g=gcs(); const items=[];
   if (g!=null) items.push(`<span class="pill ${g<=8?'crit':g<=12?'warn':'ok'}">GKS ${g}</span>`);
-  if (num(S.vitals.sbp)!=null && num(S.vitals.hr)!=null) items.push(`<span class="pill neutral">Şok indeksi ${(S.vitals.hr/S.vitals.sbp).toFixed(2)}</span>`);
-  Object.keys(auto).filter(id=>FINDING_BY_ID[id]?.cat==="vital"||id==="coma").forEach(id=>items.push(`<span class="pill info">${esc(FINDING_BY_ID[id].label)}</span>`));
+  const sbpN=num(S.vitals.sbp), hrN=num(S.vitals.hr);
+  if (sbpN!=null && hrN!=null){ if (sbpN>0 && hrN>=0){ const si=hrN/sbpN; items.push(`<span class="pill ${si>=1?'crit':si>=0.9?'warn':'neutral'}">Şok indeksi ${si.toFixed(2)}</span>`); } else if (sbpN<=0) items.push(`<span class="pill crit">Sistolik TA ${sbpN} — nabızsız / arrest?</span>`); }
+  Object.keys(auto).filter(id=>auto[id]>0 && (FINDING_BY_ID[id]?.cat==="vital"||id==="coma")).forEach(id=>items.push(`<span class="pill info">${esc(FINDING_BY_ID[id].label)}</span>`));
   $("#vitalSummary").innerHTML = items.join("") || '<span class="small muted">Değer girildikçe türetilen bulgular burada listelenir.</span>';
   renderTags("#mentalTags", FINDINGS.filter(f=>f.cat==="mental"||(f.cat==="sx")||f.id==="dysarthria").map(f=>f.id));
 }
@@ -197,11 +203,11 @@ function renderFigure(){
   const fig=$("#figure");
   const countFor = sp => (REGION_GROUPS[sp.id]||[]).reduce((n,g)=>n+FINDINGS.filter(f=>f.group===g && S.findings[f.id]>0).length,0);
   fig.innerHTML = `<img src="${R.img}" alt="Muayene figürü — ${S.bodyView==='front'?'ön':S.bodyView==='back'?'arka':'yüz'} görünüm" draggable="false">` +
-    R.spots.map(sp=>{ const c=countFor(sp); return `<button type="button" class="hs ${c?'marked':''} ${S.region===sp.id?'sel':''}" style="left:${sp.x}%;top:${sp.y}%" data-r="${sp.id}" title="${esc(sp.label)}" aria-label="${esc(sp.label)}"><span class="n">${c}</span></button>`; }).join("");
+    R.spots.map(sp=>{ const c=countFor(sp); return `<button type="button" class="hs ${c?'marked':''} ${S.region===sp.id?'sel':''}" style="left:${sp.x}%;top:${sp.y}%" data-r="${sp.id}" title="${esc(sp.label)}" aria-label="${esc(sp.label)}${c?` (${c} bulgu)`:''}" aria-pressed="${S.region===sp.id?'true':'false'}"><span class="n" aria-hidden="true">${c}</span></button>`; }).join("");
   $$("#viewSwitch button").forEach(b=>b.classList.toggle("active", b.dataset.v===S.bodyView));
   renderRegionPanel();
   const marked = FINDINGS.filter(f=>f.group && S.findings[f.id]);
-  $("#markedSummary").innerHTML = marked.length ? marked.map(f=>`<span class="tag ${S.findings[f.id]>0?'on':'on neg'}" data-f="${f.id}">${esc(f.label)}${S.findings[f.id]<0?'<span class="k">yok</span>':''}</span>`).join("") : '<span class="small muted">Henüz bulgu işaretlenmedi.</span>';
+  $("#markedSummary").innerHTML = marked.length ? marked.map(f=>`<button type="button" class="tag ${S.findings[f.id]>0?'on':'on neg'}" data-f="${f.id}" aria-pressed="${S.findings[f.id]>0?'true':'false'}" title="${esc(f.q||'')}">${esc(f.label)}${S.findings[f.id]<0?'<span class="k">yok</span>':''}</button>`).join("") : '<span class="small muted">Henüz bulgu işaretlenmedi.</span>';
 }
 function renderRegionPanel(){
   const p=$("#regionPanel");
@@ -211,7 +217,7 @@ function renderRegionPanel(){
   const list=FINDINGS.filter(f=>groups.includes(f.group));
   p.innerHTML = `<h3><span class="dot"></span> ${esc(sp.label)}</h3><div class="finding-list">` + list.map(f=>{
     const v=S.findings[f.id]||0;
-    return `<div class="finding ${v>0?'on':v<0?'neg':''}"><div><div class="t">${esc(f.label)}</div><div class="s">${esc(f.q||'')}</div></div><div class="tri"><button type="button" class="y ${v>0?'on':''}" data-set="${f.id}:1">Var</button><button type="button" class="n ${v<0?'on':''}" data-set="${f.id}:-1">Yok</button><button type="button" data-set="${f.id}:0">—</button></div></div>`;
+    return `<div class="finding ${v>0?'on':v<0?'neg':''}"><div><div class="t">${esc(f.label)}</div><div class="s">${esc(f.q||'')}</div></div><div class="tri" role="group" aria-label="${esc(f.label)}"><button type="button" class="y ${v>0?'on':''}" aria-pressed="${v>0?'true':'false'}" data-set="${f.id}:1">Var</button><button type="button" class="n ${v<0?'on':''}" aria-pressed="${v<0?'true':'false'}" data-set="${f.id}:-1">Yok</button><button type="button" aria-label="Temizle" title="Temizle" data-set="${f.id}:0">—</button></div></div>`;
   }).join("") + `</div>`;
 }
 
@@ -228,9 +234,10 @@ function renderECG(){
     else flags.push(["ok","QRS dar","Na kanal blokajı için düşük olasılık (erken dönemde tekrar et)."]);
   }
   if (q){
-    const qv=q.fridericia;
+    const qv=q.fridericia, sex=S.patient.sex, thr=sex==="K"?480:470;
+    const sexNote = sex==="K"?"kadın eşiği ≥480":sex==="E"?"erkek eşiği ≥470":"cinsiyet girilmedi; erkek eşiği ≥470 kullanıldı (kadın ≥480)";
     if (qv>500) flags.push(["crit",`QTc ${qv.toFixed(0)} ms (Fridericia)`,"Torsades riski: K >4, Mg >2, Mg 2 g IV, QT uzatan ilaçları kes, overdrive pacing/izoproterenol hazır. Taşikardide Bazett QTc'yi abartır; Fridericia tercih."]);
-    else if (qv>470) flags.push(["warn",`QTc ${qv.toFixed(0)} ms`,"Uzamış (erkek ≥470, kadın ≥480). Elektrolitleri düzelt, seri EKG."]);
+    else if (qv>=thr) flags.push(["warn",`QTc ${qv.toFixed(0)} ms (Fridericia)`,`Uzamış (${sexNote}). Elektrolitleri düzelt, seri EKG.`]);
   }
   if ((n(e.avr)!=null && e.avr>=3) || (n(e.avrrs)!=null && e.avrrs>0.7)) flags.push(["crit","aVR terminal R ≥3 mm / R:S >0,7","TSA toksisitesinde nöbet ve aritmi öngörücüsü."]);
   if (e.axis==="right") flags.push(["warn","Terminal sağ aks","Terminal 40 ms'de sağ aks deviasyonu (aVR'de R, I/aVL'de S) Na kanal blokajı lehine."]);
@@ -252,10 +259,10 @@ function renderLab(){
   const ag=anionGap(), o=$("#agOut");
   if (ag){
     const parts=[`<div class="big">AG ${ag.ag.toFixed(0)} <span class="sub">mEq/L</span></div>`];
-    parts.push(`<div class="sub">${ag.ag>12?'Artmış anyon açığı':'Normal anyon açığı (≤12)'}${ag.agc!=null?` · albümin düzeltilmiş ${ag.agc.toFixed(0)}`:''}</div>`);
-    if (num(S.lab.hco3)<24 && ag.ag>12) parts.push(`<div class="sub">Delta oranı ${isFinite(ag.delta)?ag.delta.toFixed(2):'—'} → ${ag.delta<0.4?'hiperkloremik asidoz baskın':ag.delta<0.8?'karma (AG + hiperkloremik)':ag.delta<=2?'saf AG asidoz':'eşlik eden metabolik alkaloz'}</div>`);
+    parts.push(`<div class="sub">${ag.agEff>12?'Artmış anyon açığı':'Normal anyon açığı (≤12)'}${ag.agc!=null?` · albümin düzeltilmiş ${ag.agc.toFixed(0)} (karar bu değere göre; ham ${ag.ag.toFixed(0)})`:''}</div>`);
+    if (num(S.lab.hco3)<24 && ag.agEff>12) parts.push(`<div class="sub">Delta oranı ${isFinite(ag.delta)?ag.delta.toFixed(2):'—'} → ${ag.delta<0.4?'hiperkloremik asidoz baskın':ag.delta<0.8?'karma (AG + hiperkloremik)':ag.delta<=2?'saf AG asidoz':'eşlik eden metabolik alkaloz'}</div>`);
     if (num(S.lab.hco3)<22) parts.push(`<div class="sub">Winter: beklenen pCO₂ ${ag.winter.toFixed(0)} ± 2${num(S.lab.pco2)!=null?` · ölçülen ${S.lab.pco2} → ${S.lab.pco2<ag.winter-2?'eşlik eden respiratuvar ALKALOZ (salisilat?)':S.lab.pco2>ag.winter+2?'eşlik eden respiratuvar asidoz (yetersiz kompansasyon)':'uygun kompansasyon'}`:''}</div>`);
-    if (ag.ag>12 && num(S.lab.hco3)<22) parts.push(`<div class="sub"><b>GOLD MARK</b>: glikoller, oksoprolin, L-laktat, D-laktat, metanol, aspirin, renal, ketoasidoz. Laktat ${num(S.lab.lac)!=null?S.lab.lac:'?'}.</div>`);
+    if (ag.agEff>12 && num(S.lab.hco3)<22) parts.push(`<div class="sub"><b>GOLD MARK</b>: glikoller, oksoprolin, L-laktat, D-laktat, metanol, aspirin, renal, ketoasidoz. Laktat ${num(S.lab.lac)!=null?S.lab.lac:'?'}.</div>`);
     o.innerHTML=parts.join("");
   } else o.innerHTML='<span class="sub">Na, Cl ve HCO₃ girin.</span>';
   const og=osmGap(), oo=$("#osmOut");
@@ -277,13 +284,14 @@ function renderLab(){
   if (num(L.digi)!=null) lv.push(`<span class="pill ${L.digi>2?'warn':'ok'}">Digoksin ${L.digi} ng/mL ${L.digi>2?'— yüksek (kliniğe göre Fab)':''}</span>`);
   if (num(L.li)!=null) lv.push(`<span class="pill ${L.li>=4?'crit':L.li>1.5?'warn':'ok'}">Lityum ${L.li} mmol/L ${L.li>=4?'— HD endikasyonu (özellikle böbrek bozukluğunda); >5 kesin':L.li>1.5?'— toksik':''}</span>`);
   if (num(L.methb)!=null) lv.push(`<span class="pill ${L.methb>=30?'crit':L.methb>=20?'warn':L.methb>3?'warn':'ok'}">MetHb %${L.methb} ${L.methb>=30?'— acil: metilen mavisi':L.methb>=20?'— semptomatikse metilen mavisi':L.methb>3?'— yüksek; hipoksi semptomu varsa tedavi':''}</span>`);
-  if (num(L.cohb)!=null) lv.push(`<span class="pill ${L.cohb>=25?'crit':L.cohb>=10?'warn':'ok'}">COHb %${L.cohb} ${L.cohb>=25?'— HBO düşün':L.cohb>=10?'— %100 O₂':''}</span>`);
+  if (num(L.cohb)!=null) lv.push(`<span class="pill ${L.cohb>=25?'crit':L.cohb>5?'warn':'ok'}">COHb %${L.cohb} ${L.cohb>=25?'— HBO düşün':L.cohb>=10?'— %100 O₂':L.cohb>5?'— yüksek (sigara içicide %10\'a kadar olabilir); %100 O₂':''}</span>`);
   if (num(L.ck)!=null) lv.push(`<span class="pill ${L.ck>5000?'crit':L.ck>1000?'warn':'ok'}">CK ${L.ck} ${L.ck>5000?'— ağır rabdomiyoliz':L.ck>1000?'— rabdomiyoliz':''}</span>`);
   if (num(L.alt)!=null) lv.push(`<span class="pill ${L.alt>1000?'crit':L.alt>100?'warn':'ok'}">ALT ${L.alt}</span>`);
   $("#levelsOut").innerHTML = lv.join(" ") || '<span class="sub">Düzeyler eşiklerle yorumlanır.</span>';
   renderTags("#labTags", ["oxalate","ketosis","spo2gap","chocblood","venoushyperox","hypoCa","aki","leuko","lfthigh","hypoNa","hypoK","hyperK","respalk","lactate","agacid","osmgap","apaplevel"]);
   // Fab
-  const wt=num(S.patient.wt), fl=num(L.flevel), fm=num(L.fmg), fo=[];
+  const wt=wtKg(), fl=num(L.flevel), fm=num(L.fmg), fo=[];
+  if (fl!=null && wt==null) fo.push("Düzeye göre hesap için kiloyu Hasta & öykü sekmesine girin (1-300 kg).");
   if (fl!=null && wt!=null) fo.push(`Düzeye göre: ${Math.ceil(fl*wt/100)} flakon (${fl} × ${wt} / 100 = ${(fl*wt/100).toFixed(1)})`);
   if (fm!=null) fo.push(`Alınan doza göre: ${Math.ceil(fm*0.8/0.5)} flakon (${fm} mg × 0,8 / 0,5)`);
   fo.push("Ampirik (miktar bilinmiyor): görece stabil 2 flakon, yanıt yetersizse 1-2 tekrar; arrest yakın/arrest 10 flakon. Endikasyon: hayatı tehdit eden aritmi, K >5-5,5 (akut), hemodinamik instabilite, uç organ hasarı.");
@@ -297,7 +305,7 @@ function renderLab(){
     qd.push(`<b>HIE</b>: ${Math.round(wt)} U bolus + ${Math.round(wt)} U/s (→${Math.round(10*wt)} U/s), dekstroz ${Math.round(0.5*wt)} g bolus`);
     qd.push(`<b>Fomepizol</b>: ${Math.round(15*wt)} mg yükleme, ${Math.round(10*wt)} mg/12 s`);
     qd.push(`<b>Metilen mavisi</b>: ${Math.round(wt)}-${Math.round(2*wt)} mg (${(0.1*wt).toFixed(0)}-${(0.2*wt).toFixed(0)} mL %1)`);
-    qd.push(`<b>Pralidoksim</b>: ${Math.round(30*wt)} mg yükleme (maks 2 g), ${Math.round(8*wt)} mg/s`);
+    qd.push(`<b>Pralidoksim</b>: ${Math.min(2000,Math.round(30*wt))} mg yükleme (maks 2 g), ${Math.min(650,Math.round(8*wt))} mg/s (maks 650 mg/s)`);
     qd.push(`<b>Dantrolen</b>: ${(2.5*wt).toFixed(0)} mg IV`);
     qd.push(`<b>Aktif kömür</b>: ${Math.min(50,Math.round(wt))} g`);
   } else qd.push('<span class="sub">Kilo girildiğinde kilo bazlı dozlar burada görünür.</span>');
@@ -313,7 +321,7 @@ function drawRumack(){
   [5,10,20,50,100,150,200,300,500].forEach(v=>{ ctx.beginPath(); ctx.moveTo(px,ys(v)); ctx.lineTo(px+pw,ys(v)); ctx.stroke(); ctx.textAlign="right"; ctx.fillText(v,px-6,ys(v)+4); });
   [4,8,12,16,20,24].forEach(t=>{ ctx.beginPath(); ctx.moveTo(xs(t),py); ctx.lineTo(xs(t),py+ph); ctx.stroke(); ctx.textAlign="center"; ctx.fillText(t+" s",xs(t),py+ph+16); });
   ctx.textAlign="left"; ctx.fillText("µg/mL",px-50,py+8);
-  const drawLine=(k,col)=>{ ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); for(let t=4;t<=24;t+=0.5){ const v=k*Math.pow(2,-(t-4)/4); const x=xs(t),y=ys(v); t===4?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.stroke(); };
+  const drawLine=(k,col)=>{ ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); const tEnd=Math.min(24, 4+4*Math.log2(k/5)); for(let t=4;t<tEnd;t+=0.5){ const v=k*Math.pow(2,-(t-4)/4); const x=xs(t),y=ys(v); t===4?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.lineTo(xs(tEnd),ys(k*Math.pow(2,-(tEnd-4)/4))); ctx.stroke(); };
   drawLine(300,warn); drawLine(150,crit);
   ctx.fillStyle=crit; ctx.fillText("150 (tedavi çizgisi)",xs(4)+6,ys(150)-6); ctx.fillStyle=warn; ctx.fillText("300 (yüksek risk)",xs(4)+6,ys(300)-6);
   const rm=rumack(); if(rm&&rm.valid){ const x=xs(rm.t), y=ys(Math.max(5,Math.min(600,rm.c))); ctx.fillStyle=pin; ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.stroke(); }
@@ -324,9 +332,10 @@ function renderRank(){
   const sc=score(); const any=Object.keys(effectiveFindings()).length;
   const wrap=$("#rank");
   if (!any){ wrap.innerHTML='<div class="empty">Vital, muayene, EKG veya lab bulgusu girildikçe sıralama burada oluşur.</div>'; }
-  else wrap.innerHTML = sc.slice(0,8).map((r,i)=>`<div class="rk ${i===0&&r.s>0?'top':''} ${r.s<=0?'':''}" data-t="${r.t.id}" title="${esc(r.t.classic)}"><div class="h"><b>${esc(r.t.name)}</b><span class="sc">${r.s>0?'+':''}${r.s}</span></div><div class="bar"><i style="width:${r.pct}%"></i></div><div class="why">${r.plus.slice(0,4).map(p=>`<span class="plus">+${p.w} ${esc(p.lbl)}</span>`).join(" · ")}${r.minus.length?' · '+r.minus.slice(0,2).map(m=>`<span class="minus">${m.w} ${esc(m.lbl)}${m.present?'':' (yok)'}</span>`).join(" · "):''}</div></div>`).join("");
+  else wrap.innerHTML = sc.slice(0,8).map((r,i)=>`<div class="rk ${i===0&&r.s>0?'top':''}" role="button" tabindex="0" data-t="${r.t.id}" title="${esc(r.t.classic)}" aria-label="${esc(r.t.name)}, ${r.s} puan; değerlendirmeyi aç"><div class="h"><b>${esc(r.t.name)}</b><span class="sc">${r.s>0?'+':''}${r.s}</span></div><div class="bar"><i style="width:${r.pct}%"></i></div><div class="why">${r.plus.slice(0,4).map(p=>`<span class="plus">+${p.w} ${esc(p.lbl)}</span>`).join(" · ")}${r.minus.length?' · '+r.minus.slice(0,2).map(m=>`<span class="minus">${m.w} ${esc(m.lbl)}${m.present?'':' (yok)'}</span>`).join(" · "):''}</div></div>`).join("");
   // uyarılar
-  const al=[], f=effectiveFindings(), v=S.vitals, n=num;
+  // yalnız VAR olan bulgular uyarı tetikler; "Yok" (-1) yanıtları tetiklemez
+  const al=[], f=Object.fromEntries(Object.entries(effectiveFindings()).filter(([,x])=>x>0)), v=S.vitals, n=num;
   if (f.qrswide) al.push(["crit","Geniş QRS → NaHCO₃"]);
   if (f.qtlong) al.push(["crit","QTc >500 → Mg, K/Mg düzelt"]);
   if (f.hypogly) al.push(["crit","Hipoglisemi → dekstroz"]);
@@ -343,7 +352,8 @@ function renderRank(){
   if (f.bronchorr) al.push(["crit","Bronkore → atropin, dekontaminasyon"]);
   if (f.hyperK && (f.h_digi||f.digilevel)) al.push(["crit","Digoksin + hiperkalemi → Fab"]);
   $("#alerts").innerHTML = al.length ? al.map(a=>`<div class="flag ${a[0]}"><b>${esc(a[1])}</b><span></span></div>`).join("") : '<div class="empty">Kritik uyarı yok.</div>';
-  $("#findingChip").innerHTML=`<b>${Object.keys(S.findings).length}</b> bulgu${Object.keys(auto).length?` · <b>${Object.keys(auto).length}</b> otomatik`:''}`;
+  const autoPos=Object.values(auto).filter(x=>x>0).length;
+  $("#findingChip").innerHTML=`<b>${Object.keys(S.findings).length}</b> bulgu${autoPos?` · <b>${autoPos}</b> otomatik`:''}`;
   $("#patientChip").textContent = S.patient.name || (S.patient.agent ? `Ajan: ${S.patient.agent}` : "Yeni hasta");
 }
 
@@ -386,7 +396,7 @@ function renderResult(){
   const sc=score(), wrap=$("#resultBody");
   const top=sc.filter(r=>r.s>0).slice(0,3);
   if (!top.length){ wrap.innerHTML='<div class="card"><p class="muted">Henüz yeterli bulgu yok. Vital, muayene ve EKG verilerini girin.</p></div>'; }
-  else wrap.innerHTML = top.map((r,i)=>`<div class="card" style="border-left:5px solid ${r.t.color}"><h3>${i+1}. ${esc(r.t.name)} <span class="pill ${i===0?'crit':'neutral'}" style="margin-left:6px">${r.s>0?'+':''}${r.s} puan · ${r.pct}%</span></h3>
+  else wrap.innerHTML = top.map((r,i)=>`<div class="card" style="border-left:5px solid color-mix(in srgb, ${r.t.color} 55%, var(--fg))"><h3>${i+1}. ${esc(r.t.name)} <span class="pill ${i===0?'crit':'neutral'}" style="margin-left:6px">${r.s>0?'+':''}${r.s} puan · ${r.pct}%</span></h3>
     <p class="small"><b>Ajanlar:</b> ${esc(r.t.agents)}</p>
     <p class="small" style="margin-top:4px"><b>Klasik tablo:</b> ${esc(r.t.classic)}</p>
     <div class="grid g2" style="margin-top:10px">
@@ -394,21 +404,21 @@ function renderResult(){
       <div><h4>Aleyhine</h4><div class="tags" style="margin-top:6px">${r.minus.map(m=>`<span class="tag on neg">${m.w} ${esc(m.lbl)}${m.present?'':' (yok)'}</span>`).join("")||'<span class="small muted">—</span>'}</div></div>
     </div>
     <div class="notice" style="margin-top:12px"><b>Yönetim:</b> ${esc(r.t.mgmt)}</div></div>`).join("") +
-    (sc.length>3 ? `<div class="card"><h3>Diğer adaylar</h3><div class="tags">${sc.slice(3,10).map(r=>`<span class="tag" data-t="${r.t.id}">${esc(r.t.name)} <span class="k">${r.s>0?'+':''}${r.s}</span></span>`).join("")}</div></div>`:"");
-  const table=$("#toxTable"); const topIds=new Set(top.map(r=>r.t.name));
-  table.innerHTML = `<thead><tr>${TOX_TABLE[0].map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${TOX_TABLE.slice(1).map(row=>`<tr class="${[...topIds].some(n=>n.toLowerCase().startsWith(row[0].toLowerCase().split(' ')[0]))?'hl':''}">${row.map((c,i)=>`<td>${i===0?'<b>'+esc(c)+'</b>':esc(c)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+    (sc.length>3 ? `<div class="card"><h3>Diğer adaylar</h3><div class="tags">${sc.slice(3,10).map(r=>`<button type="button" class="tag" data-t="${r.t.id}" title="${esc(r.t.classic)}">${esc(r.t.name)} <span class="k">${r.s>0?'+':''}${r.s}</span></button>`).join("")}</div></div>`:"");
+  const table=$("#toxTable"); const topIds=new Set(top.map(r=>r.t.id));
+  table.innerHTML = `<thead><tr>${TOX_TABLE[0].map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${TOX_TABLE.slice(1).map((row,ri)=>`<tr class="${topIds.has(TOX_TABLE_IDS[ri])?'hl':''}">${row.map((c,i)=>`<td>${i===0?'<b>'+esc(c)+'</b>':esc(c)}</td>`).join("")}</tr>`).join("")}</tbody>`;
 }
 
 /* ---------- render: antidotlar ---------- */
 function renderAnti(){
-  const q=($("#antiFilter").value||"").toLowerCase().trim(), wt=num(S.patient.wt);
+  const q=($("#antiFilter").value||"").toLowerCase().trim(), wt=wtKg();
   const list=ANTIDOTES.filter(a=>!q || (a.name+" "+a.tox+" "+a.dose).toLowerCase().includes(q));
   $("#antiList").innerHTML = list.map(a=>{
     let kg="";
     if (wt!=null && a.perkg){
       const p=a.perkg, parts=[];
       if (p.load!=null){ let d=p.load*wt; if(p.max) d=Math.min(d,p.max); parts.push(`yükleme ≈ <b>${d%1?d.toFixed(1):d}</b> ${p.unit}${p.range?` (${p.range} ${p.unit}/kg)`:''}`); }
-      if (p.rate!=null) parts.push(`idame ≈ <b>${(p.rate*wt)%1?(p.rate*wt).toFixed(1):p.rate*wt}</b> ${p.rateUnit}`);
+      if (p.rate!=null){ let r=p.rate*wt; if (p.rateMax) r=Math.min(r,p.rateMax); parts.push(`idame ≈ <b>${r%1?r.toFixed(1):r}</b> ${p.rateUnit}${p.rateMax&&r>=p.rateMax?' (tavan)':''}`); }
       kg=`<div class="note" style="color:var(--accent)">${wt} kg için: ${parts.join(" · ")}</div>`;
     }
     return `<div class="card"><h3>${esc(a.name)}<span class="pill info">${esc(a.tox)}</span></h3><div class="dose">${esc(a.dose)}</div>${kg}<div class="note">${esc(a.note)}</div></div>`;
@@ -419,7 +429,7 @@ function renderAnti(){
 function caseSummary(){
   const p=S.patient, v=S.vitals, e=S.ecg, L=S.lab, f=effectiveFindings();
   const line=[];
-  line.push(`HASTA: ${p.age||'?'} yaş ${p.sex==='E'?'erkek':p.sex==='K'?'kadın':''}${p.wt?`, ${p.wt} kg`:''}.`);
+  line.push(`HASTA: ${p.age||'?'} yaş ${p.sex==='E'?'erkek':p.sex==='K'?'kadın':''}${wtKg()!=null?`, ${wtKg()} kg`:''}.`);
   if (p.agent||p.time||p.route||p.intent) line.push(`MARUZİYET: ${p.agent||'bilinmiyor'}${p.time?`, ${p.time} saat önce`:''}${p.route?`, ${p.route}`:''}${p.intent?`, ${p.intent}`:''}.`);
   if (p.meds) line.push(`İLAÇLAR: ${p.meds}.`); if (p.hx) line.push(`ÖYKÜ: ${p.hx}.`);
   const vit=[["Nabız",v.hr,"/dk"],["TA",v.sbp&&`${v.sbp}/${v.dbp||'?'}`,"mmHg"],["SS",v.rr,"/dk"],["Isı",v.temp,"°C"],["SpO₂",v.spo2,"%"],["Glukoz",v.glu,"mg/dL"],["EtCO₂",v.etco2,"mmHg"]].filter(x=>x[1]).map(x=>`${x[0]} ${x[1]} ${x[2]}`);
@@ -467,9 +477,14 @@ async function ask(){
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, { method:"POST", signal:aiCtl.signal, headers:{"Content-Type":"application/json","x-goog-api-key":key}, body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{ temperature:0.3 } }) });
       if (!res.ok){ const t=await res.text(); throw {code:"http", message:`Gemini ${res.status}: ${t.slice(0,300)}`}; }
       const reader=res.body.getReader(), dec=new TextDecoder(); let buf="", acc="";
-      while(true){ const {value,done}=await reader.read(); if(done) break; buf+=dec.decode(value,{stream:true});
-        let idx; while((idx=buf.indexOf("\n\n"))>=0){ const chunk=buf.slice(0,idx); buf=buf.slice(idx+2);
-          chunk.split("\n").filter(l=>l.startsWith("data:")).forEach(l=>{ try{ const j=JSON.parse(l.slice(5).trim()); const t=j.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||""; acc+=t; out.textContent=acc; }catch(e){} }); } }
+      const SEP=/\r\n\r\n|\r\r|\n\n/;   // resmi SDK'nın kabul ettiği üç olay ayırıcısı
+      const handle=(chunk)=>{ chunk.split(/\r\n|\r|\n/).forEach(l=>{ if(!l.startsWith("data:")) return; const d=l.slice(5).trim(); if(!d||d==="[DONE]") return; let j; try{ j=JSON.parse(d); }catch(e){ return; }
+        if (j.error) throw {code:"http", message:`Gemini: ${j.error.message||JSON.stringify(j.error).slice(0,200)}`};
+        const t=j.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||""; if (t){ acc+=t; out.textContent=acc; }
+        const fr=j.candidates?.[0]?.finishReason; if (fr && fr!=="STOP" && fr!=="MAX_TOKENS"){ acc+=`\n\n[Yanıt kesildi: ${fr}]`; out.textContent=acc; }
+        if (!t && j.promptFeedback?.blockReason) throw {code:"http", message:`Gemini istemi engellendi: ${j.promptFeedback.blockReason}`}; }); };
+      while(true){ const {value,done}=await reader.read(); if(done) break; buf+=dec.decode(value,{stream:true}); let m; while((m=SEP.exec(buf))){ handle(buf.slice(0,m.index)); buf=buf.slice(m.index+m[0].length); } }
+      buf+=dec.decode(); if (buf.trim()) handle(buf);
       if (!acc) out.textContent="Boş yanıt (model adını kontrol edin).";
     }
   }catch(e){
@@ -489,9 +504,23 @@ function saveCase(){
 }
 function renderRecords(){
   const r=records(), w=$("#records");
-  w.innerHTML = r.length ? r.map(c=>`<div class="rec"><div><b>${esc(c.patient.name||c.patient.agent||'İsimsiz vaka')}</b><div class="m">${new Date(c.updated||c.created).toLocaleString("tr-TR")} · ${Object.keys(c.findings||{}).length} bulgu${c.patient.age?` · ${c.patient.age} y`:''}</div></div><div style="display:flex;gap:6px"><button type="button" class="btn sm" data-load="${c.id}">Aç</button><button type="button" class="btn sm danger" data-del="${c.id}">Sil</button></div></div>`).join("") : '<span class="small muted">Kayıtlı vaka yok.</span>';
+  w.innerHTML = r.length ? r.map(c=>{ const p=c.patient||{}; const when=new Date(c.updated||c.created||0); return `<div class="rec"><div><b>${esc(p.name||p.agent||'İsimsiz vaka')}</b><div class="m">${isNaN(when)?'':when.toLocaleString("tr-TR")} · ${Object.keys(c.findings||{}).length} bulgu${p.age?` · ${esc(p.age)} y`:''}</div></div><div style="display:flex;gap:6px"><button type="button" class="btn sm" data-load="${esc(c.id)}">Aç</button><button type="button" class="btn sm danger" data-del="${esc(c.id)}">Sil</button></div></div>`; }).join("") : '<span class="small muted">Kayıtlı vaka yok.</span>';
 }
-function loadCase(c){ S={...blank(),...JSON.parse(JSON.stringify(c))}; S.view="patient"; syncInputs(); refresh(); showView("patient"); toast("Vaka yüklendi"); }
+/* Dış veri (localStorage, yapıştırılan JSON) blank() şablonuna göre temizlenir */
+function sanitize(c){
+  const b=blank(); const obj=x=>(x&&typeof x==="object"&&!Array.isArray(x))?x:{}; c=obj(c);
+  const pick=(base,src)=>{ src=obj(src); return Object.fromEntries(Object.keys(base).map(k=>[k, src[k]==null?base[k]:String(src[k]).slice(0,500)])); };
+  const out={...b, patient:pick(b.patient,c.patient), vitals:pick(b.vitals,c.vitals), ecg:pick(b.ecg,c.ecg), lab:pick(b.lab,c.lab)};
+  out.findings=Object.fromEntries(Object.entries(obj(c.findings)).filter(([k,v])=>FINDING_BY_ID[k]&&(v===1||v===-1)));
+  out.skipped=Array.isArray(c.skipped)?c.skipped.filter(k=>typeof k==="string"&&FINDING_BY_ID[k]):[];
+  out.view=VIEWS.some(v=>v.id===c.view)?c.view:"patient";
+  out.bodyView=REGIONS[c.bodyView]?c.bodyView:"front";
+  out.region=typeof c.region==="string"?c.region:null;
+  out.id=(typeof c.id==="string"&&/^[\w-]{1,40}$/.test(c.id))?c.id:null;
+  out.created=typeof c.created==="string"?c.created.slice(0,40):null; out.updated=typeof c.updated==="string"?c.updated.slice(0,40):null;
+  return out;
+}
+function loadCase(c){ S=sanitize(c); S.view="patient"; syncInputs(); refresh(); showView("patient"); toast("Vaka yüklendi"); }
 function syncInputs(){
   Object.keys(S.patient).forEach(k=>{ const el=$("#p_"+k); if(el) el.value=S.patient[k]; });
   renderVitals(); renderECG(); renderLab();
@@ -539,6 +568,7 @@ function bind(){
     if (el.id==="antiFilter"){ renderAnti(); return; }
   });
   document.addEventListener("change", e=>{ const el=e.target; if(el.id==="aiProvider") updateProvider(); });
+  document.addEventListener("keydown", e=>{ if ((e.key==="Enter"||e.key===" ") && e.target.matches?.(".rk[role=button]")){ e.preventDefault(); e.target.click(); } });
   $("#btnSave").onclick=saveCase;
   $("#btnNew").onclick=()=>{ if ($("#btnNew").dataset.c){ S=blank(); syncInputs(); refresh(); showView("patient"); refresh(); delete $("#btnNew").dataset.c; $("#btnNew").textContent="Yeni vaka"; toast("Yeni vaka"); } else { $("#btnNew").dataset.c="1"; $("#btnNew").textContent="Kaydedilmemiş veri silinsin mi? Tekrar tıkla"; setTimeout(()=>{ delete $("#btnNew").dataset.c; $("#btnNew").textContent="Yeni vaka"; },4000); } };
   $("#btnExport").onclick=async()=>{ const j=JSON.stringify(S,null,1); try{ await navigator.clipboard.writeText(j); toast("JSON panoya kopyalandı"); }catch(e){ const b=$("#importBox"); b.hidden=false; b.value=j; b.select(); toast("Kopyalamak için metni seçin"); } };
@@ -554,7 +584,7 @@ function bind(){
 function start(){
   bind();
   const d=store.get("tp_draft", null);
-  if (d && d.patient){ S={...blank(),...d}; }
+  if (d && d.patient){ S=sanitize(d); }
   if (!S.findings || !Object.keys(S.findings).length && !S.patient.agent && !num(S.vitals.hr)) {
     // Örnek vaka: ilk açılışta aracın ne yaptığını gösterir
     if (!d){ S=blank(); S.patient={...S.patient, name:"Örnek vaka (TSA)", age:"27", sex:"K", wt:"62", agent:"Amitriptilin 25 mg ×40 (örnek)", time:"2", route:"Oral", intent:"Kasıtlı (özkıyım)"};
@@ -567,4 +597,4 @@ function start(){
   // artifact canlı güncelleme
   window.claude?.hot?.snapshot?.(()=>S);
 }
-if (window.claude?.hot?.ready) window.claude.hot.ready(d=>{ if(d&&d.patient) S={...blank(),...d}; start(); }); else start();
+if (window.claude?.hot?.ready) window.claude.hot.ready(d=>{ if(d&&d.patient) S=sanitize(d); start(); }); else start();

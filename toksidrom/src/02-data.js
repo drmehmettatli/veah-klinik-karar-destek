@@ -17,7 +17,7 @@ const REGIONS = {
       { id:"lungR",  x:41, y:30,   label:"Sağ akciğer" },
       { id:"lungL",  x:59, y:30,   label:"Sol akciğer" },
       { id:"heart",  x:53.5, y:34, label:"Kalp" },
-      { id:"skin",   x:35, y:44,   label:"Cilt (gövde)" },
+      { id:"skin",   x:41, y:38,   label:"Cilt (gövde)" },
       { id:"abd",    x:50, y:42,   label:"Karın / bağırsak" },
       { id:"bladder",x:50, y:49,   label:"Suprapubik / mesane" },
       { id:"armR",   x:30, y:40,   label:"Sağ kol" },
@@ -133,7 +133,7 @@ const FINDINGS = [
   { id:"cyanosis",   group:"skin", cat:"skin", label:"Santral siyanoz", q:"Santral siyanoz var mı?" },
   { id:"cherry",     group:"skin", cat:"skin", label:"Kiraz kırmızısı cilt", q:"Kiraz kırmızısı cilt rengi var mı (nadir, geç bulgu)?" },
   { id:"jaundice",   group:"skin", cat:"skin", label:"Sarılık", q:"Sarılık var mı?" },
-  { id:"piloer",     group:"skin", cat:"skin", label:"Piloereksiyon", q:"Piloereksiyon (tüylerin dikenleşmesi) var mı?" },
+  { id:"piloer",     group:"skin", cat:"skin", label:"Piloereksiyon", q:"Piloereksiyon (tüylerin diken diken olması) var mı?" },
   { id:"bullae",     group:"skin", cat:"skin", label:"Bası bülleri (koma blisterleri)", q:"Bası noktalarında büller var mı?" },
   { id:"tracks",     group:"skin", cat:"skin", label:"İğne izleri", q:"Enjeksiyon / iğne izleri var mı?" },
   { id:"patch",      group:"skin", cat:"skin", label:"Transdermal bant (fentanil, klonidin, nikotin)", q:"Ciltte transdermal bant var mı?" },
@@ -297,7 +297,7 @@ const TOXIDROMES = [
     id:"symp", name:"Sempatomimetik", short:"Sempato.", color:"#c0392b",
     agents:"Kokain, amfetaminler, MDMA, sentetik katinonlar, efedrin, kafein/teofilin, albuterol",
     classic:"Taşikardi, hipertansiyon, hipertermi, midriyazis, TERLİ cilt, ajitasyon, bağırsak sesleri normal/artmış",
-    w:{ tachy:3, htn:3, hyperth:2, tachypnea:1, mydriasis:3, diaph:3, sweatypalm:2, agit:3, psychosis:2, seizure:1, tremor:1, hyperreflex:1, bs_up:1, hypergly:1, chestpain:2, septum:2, h_symp:4,
+    w:{ tachy:3, htn:3, hyperth:2, tachypnea:1, mydriasis:3, diaph:3, sweatypalm:2, agit:3, psychosis:2, seizure:1, tremor:1, hyperreflex:1, bs_up:1, hypergly:1, chestpain:2, septum:2, conjinj:1, tonguebite:1, uwave:1, h_symp:4,
         dryskin:-3, drymucosa:-2, miosis:-3, brady:-3, sedation:-2, coma:-2, retention:-1, bs_down:-1, hypoth:-2 },
     mgmt:"Benzodiazepin titrasyonu (ajitasyon, HT, taşikardi, hipertermi), agresif soğutma, sıvı; beta bloker TEK BAŞINA kullanma (kokain). Göğüs ağrısında ASA, nitrat, benzodiazepin."
   },
@@ -305,7 +305,7 @@ const TOXIDROMES = [
     id:"antichol", name:"Antikolinerjik", short:"Antikol.", color:"#d35400",
     agents:"Antihistaminikler (difenhidramin), TSA, antipsikotikler, atropin/skopolamin, antispazmodikler, Datura, benztropin",
     classic:"'Kör, kuru, kırmızı, sıcak, deli, tavşan gibi': midriyazis, KURU cilt ve mukoza, flushing, hipertermi, taşikardi, deliryum, üriner retansiyon, bağırsak sesleri azalmış",
-    w:{ tachy:3, hyperth:2, htn:1, mydriasis:3, dryskin:3, drymucosa:3, flushed:2, bs_down:2, retention:3, delirium:3, halluc:2, agit:2, mutism:1, seizure:1, myoclonus:1, qrswide:1, qtlong:1, h_antichol:4,
+    w:{ tachy:3, hyperth:2, htn:1, mydriasis:3, dryskin:3, drymucosa:3, flushed:2, bs_down:2, retention:3, delirium:3, halluc:2, agit:2, mutism:1, seizure:1, myoclonus:1, qrswide:1, qtlong:1, torsades:2, tonguebite:1, h_antichol:4,
         diaph:-3, sweatypalm:-2, miosis:-3, brady:-2, saliv:-3, bronchorr:-3, diarrhea:-2, incont:-1, lacrim:-2 },
     mgmt:"Destek, benzodiazepin; saf antikolinerjik deliryumda fizostigmin (QRS geniş / TSA şüphesinde kontrendike). Hipertermide soğutma, retansiyonda sonda."
   },
@@ -321,7 +321,7 @@ const TOXIDROMES = [
     id:"opioid", name:"Opioid", short:"Opioid", color:"#34495e",
     agents:"Morfin, eroin, fentanil ve analogları, oksikodon, metadon, tramadol (nöbet), buprenorfin, loperamid (QT)",
     classic:"Miyozis + solunum depresyonu + SSS depresyonu triadı; bradikardi, hipotansiyon, hipotermi, hiporefleksi, bağırsak sesleri azalmış",
-    w:{ miosis:4, bradypnea:4, shallow:3, hypoxia:2, sedation:3, coma:3, brady:1, hypot:1, hypoth:1, bs_down:2, hyporeflex:1, tracks:3, patch:2, pulmedema:1, hypercap:2, h_opioid:4,
+    w:{ miosis:4, bradypnea:4, shallow:3, hypoxia:2, sedation:3, coma:3, brady:1, hypot:1, hypoth:1, bs_down:2, hyporeflex:1, tracks:3, patch:2, pulmedema:1, hypercap:2, bullae:1, pressure:1, h_opioid:4,
         mydriasis:-2, tachypnea:-2, agit:-2, diaph:-1, htn:-1, hyperreflex:-1, tachy:-1 },
     mgmt:"Havayolu ve ventilasyon önce. Nalokson 0,04-0,4 mg IV titre (solunum hedefi, uyanıklık değil); yanıt varsa kesilme riski; uzun etkili ajanlarda infüzyon (etkili dozun 2/3'ü/saat) ve gözlem."
   },
@@ -329,14 +329,14 @@ const TOXIDROMES = [
     id:"sedhyp", name:"Sedatif-hipnotik", short:"Sedatif", color:"#7f8c8d",
     agents:"Benzodiazepinler, barbitüratlar, Z-ilaçlar, GHB, etanol, propofol, baklofen",
     classic:"SSS depresyonu, normal/hafif küçük pupiller, ataksi, nistagmus, dizartri; vitaller görece korunmuş (barbitürat/etanol/GHB'de hipoventilasyon, hipotermi)",
-    w:{ sedation:4, coma:3, ataxia:3, nystagmus:3, dysarthria:2, hyporeflex:1, hypotonia:1, bradypnea:2, brady:1, hypot:1, hypoth:2, bullae:2, suddenwake:2, odor_etoh:2, etohlevel:2, myoclonus:1, h_sedative:4,
+    w:{ sedation:4, coma:3, ataxia:3, nystagmus:3, dysarthria:2, hyporeflex:1, hypotonia:1, bradypnea:2, brady:1, hypot:1, hypoth:2, bullae:2, pressure:2, suddenwake:2, odor_etoh:2, etohlevel:2, myoclonus:1, h_sedative:4,
         agit:-2, seizure:-1, hyperth:-3, mydriasis:-1, tachy:-1, diaph:-1, hyperreflex:-2, clonus:-2 },
     mgmt:"Destek tedavi, havayolu. Flumazenil yalnız izole, bağımlı olmayan benzodiazepin alımında (nöbet riski; TSA ko-ingestiyonunda kontrendike). GHB: kısa süreli koma, ani uyanma."
   },
   {
     id:"serot", name:"Serotonin sendromu", short:"Serotonin", color:"#8e44ad",
     agents:"SSRI/SNRI, MAOİ, tramadol, meperidin, linezolid, MDMA, lityum, triptanlar, dekstrometorfan, ondansetron, metilen mavisi; kombinasyonlar",
-    classic:"Hunter: serotonerjik ajan + (spontan klonus / indüklenebilir klonus + ajitasyon veya diyaforez / oküler klonus / tremor + hiperrefleksi / hipertoni + >38 °C + klonus). Hızlı başlangıç (<24 s), alt ekstremite > üst, hiperaktif bağırsak",
+    classic:"Hunter: serotonerjik ajan + şunlardan biri: spontan klonus; indüklenebilir klonus + (ajitasyon veya diyaforez); oküler klonus + (ajitasyon veya diyaforez); tremor + hiperrefleksi; hipertoni + ısı >38 °C + (oküler veya indüklenebilir klonus). Hızlı başlangıç (<24 s), alt ekstremite > üst, hiperaktif bağırsak",
     w:{ h_serot:4, onset_fast:2, clonus:4, sponclonus:4, ocularclonus:4, hyperreflex:3, tremor:2, rigidLE:2, agit:2, diaph:2, hyperth:2, tachy:2, htn:2, mydriasis:2, bs_up:2, diarrhea:1, myoclonus:1, delirium:1, seizure:1,
         leadpipe:-1, hyporeflex:-3, bradykin:-2, dryskin:-2, onset_slow:-3, h_dopant:-1, brady:-1, mutism:-1 },
     mgmt:"Serotonerjik ajanları kes, benzodiazepin, soğutma; orta-ağır olguda siproheptadin (12 mg PO yükleme, sonra 2 mg/2 saat). Ağır hipertermi (>41 °C): sedasyon, paralizi, entübasyon. Ajitasyon için fiziksel kısıtlama tek başına kullanılmaz."
@@ -345,7 +345,7 @@ const TOXIDROMES = [
     id:"nms", name:"Nöroleptik malign sendrom", short:"NMS", color:"#2c3e50",
     agents:"Haloperidol, atipik antipsikotikler, metoklopramid, proklorperazin; L-dopa/dopamin agonisti kesilmesi",
     classic:"Dopamin antagonisti + günler içinde başlayan KURŞUN BORU rijidite, hipertermi, mental durum değişikliği (mutizm/stupor), otonomik instabilite, bradirefleksi, CK yüksek",
-    w:{ h_dopant:4, onset_slow:3, leadpipe:4, hyperth:3, mutism:3, delirium:2, tachy:2, htn:1, hypot:1, diaph:2, bradykin:2, ckhigh:3, leuko:1, hyporeflex:1, incont:1, tremor:1, saliv:1, aki:1, mydriasis:0,
+    w:{ h_dopant:4, onset_slow:3, leadpipe:4, hyperth:3, mutism:3, delirium:2, tachy:2, htn:1, hypot:1, diaph:2, bradykin:2, ckhigh:3, leuko:1, hyporeflex:1, incont:1, tremor:1, saliv:1, aki:1, neckrigid:1, compart:1,
         clonus:-3, sponclonus:-3, ocularclonus:-3, hyperreflex:-3, onset_fast:-2, bs_up:-1, h_serot:-1 },
     mgmt:"Ajanı kes, agresif soğutma, sıvı (rabdomiyoliz), benzodiazepin; ağır olguda dantrolen veya bromokriptin. Diyaliz gerekebilir. Antipsikotik yeniden başlanması ≥2 hafta ertelenir."
   },
@@ -353,7 +353,7 @@ const TOXIDROMES = [
     id:"mh", name:"Malign hipertermi", short:"MH", color:"#e74c3c",
     agents:"Volatil anestezikler (sevofluran, desfluran, izofluran), süksinilkolin",
     classic:"Anestezi sırasında/sonrasında açıklanamayan EtCO₂ artışı, taşikardi, masseter spazmı, yaygın rijidite, hızla yükselen ısı, hiperkalemi, asidoz",
-    w:{ h_anest:5, hypercap:4, trismus:3, leadpipe:3, hyperth:3, tachy:2, hyperK:2, ckhigh:2, agacid:2, ectopy:1, peakedT:1, diaph:1,
+    w:{ h_anest:5, hypercap:4, trismus:3, leadpipe:3, compart:1, hyperth:3, tachy:2, hyperK:2, ckhigh:2, agacid:2, ectopy:1, peakedT:1, diaph:1,
         onset_slow:-3, clonus:-2, h_dopant:-1 },
     mgmt:"Tetikleyiciyi durdur, %100 O₂ ve hiperventilasyon, dantrolen 2,5 mg/kg IV (10 mg/kg'a kadar tekrar), soğutma, hiperkalemi tedavisi, bikarbonat (asidoz), aritmi için KKB kullanma."
   },
@@ -361,7 +361,7 @@ const TOXIDROMES = [
     id:"sali", name:"Salisilat", short:"Salisilat", color:"#e67e22",
     agents:"Aspirin, metil salisilat (keklik üzümü yağı, kremler), bizmut subsalisilat",
     classic:"Takipne/hiperpne, tinnitus, kusma, terleme, hipertermi; respiratuvar alkaloz + anyon açıklı metabolik asidoz; konfüzyon/ajitasyon; nonkardiyojenik pulmoner ödem (ağır)",
-    w:{ h_sali:4, salilevel:5, tachypnea:4, kussmaul:2, tinnitus:4, vomit:2, diaph:2, hyperth:1, tachy:1, agit:1, delirium:2, agacid:3, respalk:4, pulmedema:2, hypoK:1, hypogly:1, coma:1, seizure:1, ckhigh:0,
+    w:{ h_sali:4, salilevel:5, tachypnea:4, kussmaul:2, tinnitus:4, vomit:2, diaph:2, hyperth:1, tachy:1, agit:1, delirium:2, agacid:3, respalk:4, pulmedema:2, hypoK:1, uwave:1, hypogly:1, coma:1, seizure:1,
         bradypnea:-3, shallow:-3, miosis:-1, brady:-1 },
     mgmt:"Kömür (erken, tekrarlayan doz düşünülebilir), idrar alkalinizasyonu (NaHCO₃ bolus + infüzyon, idrar pH 7,5-8), potasyum replasmanı, glukoz (nöroglikopeni). Hemodiyaliz: düzey >100 mg/dL (akut, normal böbrek) / >90 (böbrek bozukluğu) / >60 (kronik); salisilizme bağlı mental durum değişikliği, pH <7,2 (veya agresif tedaviye rağmen <7,3), serebral/pulmoner ödem, bikarbonat infüzyonunu engelleyen sıvı yükü, tedaviye rağmen kötüleşme. Entübasyon tehlikeli: hiperventilasyonu sürdür."
   },
@@ -369,7 +369,7 @@ const TOXIDROMES = [
     id:"nachan", name:"Na kanal blokajı (TSA tipi)", short:"Na kanal", color:"#9b59b6",
     agents:"TSA (amitriptilin), karbamazepin, difenhidramin, kokain, propranolol, bupropion, kinidin, lamotrijin, lokal anestezikler, klorokin",
     classic:"Geniş QRS (≥100 ms), aVR'de R ≥3 mm, terminal sağ aks, hipotansiyon, taşikardi, nöbet, koma; TSA'da antikolinerjik bulgular eşlik eder; Brugada paterni",
-    w:{ h_tca:4, qrswide:4, qrsvwide:4, avrR:4, raxis:3, brugada:3, ectopy:2, tachy:2, hypot:3, seizure:3, coma:2, sedation:1, qtlong:1, mydriasis:1, dryskin:1, retention:1, delirium:1, bs_down:1, stelev:0,
+    w:{ h_tca:4, qrswide:4, qrsvwide:4, avrR:4, raxis:3, brugada:3, ectopy:2, tachy:2, hypot:3, seizure:3, coma:2, sedation:1, qtlong:1, mydriasis:1, dryskin:1, retention:1, delirium:1, bs_down:1, torsades:2, tonguebite:1,
         brady:-1, miosis:-2, diaph:-1 },
     mgmt:"NaHCO₃ 1-2 mEq/kg IV bolus (QRS >100 ms, hipotansiyon, aritmi), hedef pH 7,50-7,55; hipertonik salin alternatif. Nöbet: benzodiazepin (fenitoin yok). Hipotansiyon: sıvı, norepinefrin. Dirençli: lidokain (IB), lipid emülsiyonu; IA/IC/III antiaritmikler ve fizostigmin kontrendike."
   },
@@ -377,7 +377,7 @@ const TOXIDROMES = [
     id:"bbccb", name:"Beta bloker / KKB", short:"BB-KKB", color:"#2980b9",
     agents:"Metoprolol, propranolol (Na kanal, nöbet), sotalol (QT); verapamil, diltiazem, amlodipin (vazodilatasyon)",
     classic:"Bradikardi, hipotansiyon, AV blok, şok. KKB: HİPERGLİSEMİ ve mental durum görece korunmuş; BB: hipoglisemi, bronkospazm; propranolol: geniş QRS, nöbet, koma",
-    w:{ h_bbccb:4, brady:4, sinusbrady:3, hypot:4, avblock:3, weakpulse:2, hypergly:2, hypogly:1, wheeze:1, normalMS:1, seizure:1, qrswide:1, qtlong:1, coma:1, pulmedema:1,
+    w:{ h_bbccb:4, brady:4, sinusbrady:3, hypot:4, avblock:3, weakpulse:2, hypergly:2, hypogly:1, wheeze:1, normalMS:1, seizure:1, qrswide:1, qtlong:1, torsades:2, coma:1, pulmedema:1, edema:1,
         tachy:-3, htn:-3, mydriasis:-1, hyperth:-2, agit:-2, diaph:-1 },
     mgmt:"Atropin (sıklıkla yetersiz), sıvı, kalsiyum, glukagon (BB), YÜKSEK DOZ İNSÜLİN-ÖGLİSEMİ (1 U/kg bolus + 1 U/kg/s, 10 U/kg/s'e titre; dekstroz + K takibi), vazopresör (norepinefrin/epinefrin), lipid emülsiyonu, pacing, ECMO (refrakter). Yavaş salımlı formda tüm bağırsak yıkama."
   },
@@ -385,7 +385,7 @@ const TOXIDROMES = [
     id:"digi", name:"Kardiyak glikozit (digoksin)", short:"Digoksin", color:"#27ae60",
     agents:"Digoksin, yüksükotu, zakkum, inci çiçeği, kurbağa derisi (bufadienolid)",
     classic:"Bulantı-kusma, konfüzyon, ksantopsi; bradiaritmi + artmış otomatisite (bloklu atriyal taşikardi, bidireksiyonel VT, sık PVC), AV blok, 'çukur' ST; akut alımda HİPERKALEMİ (prognostik)",
-    w:{ h_digi:4, digilevel:5, vomit:3, xanthopsia:4, visual:2, delirium:2, brady:3, avblock:3, bidirVT:5, atachblock:4, ectopy:3, scoop:2, hyperK:4, hypoK:1, irregular:2, abdpain:1, headache:1, sinusbrady:2,
+    w:{ h_digi:4, digilevel:5, vomit:3, xanthopsia:4, visual:2, delirium:2, brady:3, avblock:3, bidirVT:5, atachblock:4, ectopy:3, scoop:2, hyperK:4, hypoK:1, uwave:1, irregular:2, abdpain:1, headache:1, sinusbrady:2,
         tachy:-1, mydriasis:-1, hyperth:-2, diaph:-1 },
     mgmt:"Digoksin-Fab: akut hayatı tehdit eden aritmi, K >5-5,5 mmol/L, hemodinamik bozukluk; ağır toksisite + miktar bilinmiyor: hemodinamik olarak görece stabilse 2 flakon, yanıt yetersizse 1-2 flakon tekrar; arrest yakın/arrestte 10 flakon; düzey biliniyorsa flakon = düzey (ng/mL) × kg / 100 (tam nötralizasyon; kısmi için yarısı). Atropin (bradikardi), Mg (ektopi). Kalsiyum verme (tartışmalı, kaçın), kardiyoversiyon düşük enerji/ son çare."
   },
@@ -402,15 +402,15 @@ const TOXIDROMES = [
     agents:"Siyanür (yangın dumanı, nitroprussid, kuyumcu, kayısı çekirdeği), karbonmonoksit (soba, şofben, jeneratör), hidrojen sülfür (kanalizasyon, gübre çukuru)",
     classic:"Hipoksi olmadan laktik asidoz (laktat >8-10), koma/nöbet, hipotansiyon, kardiyovasküler kollaps; CO: baş ağrısı, bulantı, ev halkında benzer semptom, SpO₂ yanıltıcı; CN: acı badem, venöz hiperoksi",
     w:{ h_fire:4, h_cyanide:4, h_co:4, cohb:5, lactate:4, agacid:3, coma:3, seizure:2, hypot:3, weakpulse:2, headache:3, vomit:2, odor_almond:3, odor_egg:3, venoushyperox:3, cherry:2, tachypnea:1, bradypnea:1, brady:1, tachy:1, delirium:2, stelev:2, chestpain:1, dizziness:1,
-        miosis:-1, mydriasis:0, dryskin:-1, retention:-1 },
+        miosis:-1, dryskin:-1, retention:-1 },
     mgmt:"%100 O₂ (CO: NRM/entübasyon, HBO: COHb >%25, gebelik >%15, bilinç kaybı, pH <7,25, uç organ iskemisi — EKG/troponin, solunum yetmezliği, fokal nörolojik bulgu, bilinç değişikliği). Siyanür: hidroksokobalamin 5 g IV (15 dk), gerekirse tekrar ± sodyum tiyosülfat 12,5 g; yangın kurbanlarında nitrit verme. H₂S: O₂, nitrit düşünülebilir."
   },
   {
     id:"toxalc", name:"Toksik alkol (metanol / etilen glikol)", short:"Toksik alkol", color:"#1abc9c",
     agents:"Metanol (sahte içki, cam suyu, kolonya katkı), etilen glikol (antifriz), dietilen glikol",
     classic:"Erken: sarhoşluk, kusma, karın ağrısı, ozmolar gap; geç (6-24 s): artmış AG asidoz, Kussmaul; metanol: görme kaybı, 'kar fırtınası', pupil yanıtsızlığı; EG: hipokalsemi, oksalat kristali, böbrek yetmezliği, kraniyal nöropati",
-    w:{ h_toxalc:4, osmgap:4, agacid:4, kussmaul:3, visual:4, mydriasis:1, vomit:2, abdpain:2, delirium:2, coma:2, seizure:1, oxalate:4, hypoCa:3, aki:3, tachypnea:2, odor_etoh:1, ataxia:1, lactate:1, dysarthria:1,
-        ketosis:-2, miosis:-1, bs_up:-1, onset_slow:0 },
+    w:{ h_toxalc:4, osmgap:4, agacid:4, kussmaul:3, visual:4, mydriasis:1, vomit:2, abdpain:2, delirium:2, coma:2, seizure:1, oxalate:4, hypoCa:3, aki:3, tachypnea:2, odor_etoh:1, ataxia:1, lactate:1, dysarthria:1, cva:1,
+        ketosis:-2, miosis:-1, bs_up:-1 },
     mgmt:"Fomepizol 15 mg/kg IV yükleme, 10 mg/kg/12 s ×4, sonra 15 mg/kg/12 s (diyalizde her 4 s) — etanol alternatif. Bikarbonat (pH <7,3). Metanol: folinik asit/folat; EG: tiamin + piridoksin. Hemodiyaliz: pH <7,25-7,3, görme bulgusu, böbrek yetmezliği, yüksek düzey (>50 mg/dL) veya kötüleşen vitaller."
   },
   {
@@ -433,7 +433,7 @@ const TOXIDROMES = [
     id:"etohwd", name:"Alkol / sedatif yoksunluğu", short:"EtOH-yoksunluk", color:"#d35400",
     agents:"Kronik etanol, benzodiazepin, barbitürat, GHB, baklofen kesilmesi",
     classic:"Tremor, terleme, taşikardi, hipertansiyon, anksiyete, insomni; 12-48 s nöbet; 48-96 s deliryum tremens (hipertermi, hallüsinasyon, ajitasyon); hiperaktif bağırsak",
-    w:{ h_etohwd:5, tremor:4, coarsetremor:2, diaph:3, tachy:3, htn:3, hyperth:2, agit:3, halluc:3, delirium:3, anxiety:2, seizure:2, mydriasis:1, vomit:1, bs_up:1, hyperreflex:1, hypoK:1,
+    w:{ h_etohwd:5, tremor:4, coarsetremor:2, diaph:3, tachy:3, htn:3, hyperth:2, agit:3, halluc:3, delirium:3, anxiety:2, seizure:2, mydriasis:1, vomit:1, bs_up:1, hyperreflex:1, hypoK:1, tonguebite:1,
         sedation:-3, coma:-3, brady:-2, miosis:-2, bradypnea:-3 },
     mgmt:"Benzodiazepin semptom tetikli (diazepam 10-20 mg IV / lorazepam 2-4 mg) — yüksek doz gerekebilir; dirençli: fenobarbital, propofol/entübasyon. Tiamin 100-500 mg, Mg, K, glukoz. Antipsikotik tek başına verilmez."
   },
@@ -449,7 +449,7 @@ const TOXIDROMES = [
     id:"li", name:"Lityum toksisitesi", short:"Lityum", color:"#8e44ad",
     agents:"Lityum (akut, akut-kronik, kronik); dehidratasyon, NSAİİ, ACEİ, tiyazid etkileşimi",
     classic:"Kaba tremor, hiperrefleksi, klonus, ataksi, dizartri, konfüzyon; bulantı-kusma-ishal (akut); nefrojenik Dİ; EKG: bradikardi, T düzleşmesi, QT uzaması",
-    w:{ h_li:4, lilevel:5, coarsetremor:4, tremor:2, hyperreflex:3, clonus:2, ataxia:3, dysarthria:2, delirium:3, myoclonus:2, vomit:2, diarrhea:2, polyuria:2, brady:1, qtlong:1, seizure:1, aki:1, sinusbrady:1, coma:1, hypoNa:1,
+    w:{ h_li:4, lilevel:5, coarsetremor:4, tremor:2, hyperreflex:3, clonus:2, ataxia:3, dysarthria:2, delirium:3, myoclonus:2, vomit:2, diarrhea:2, polyuria:2, brady:1, qtlong:1, torsades:2, seizure:1, aki:1, sinusbrady:1, coma:1, hypoNa:1,
         miosis:-1, bradypnea:-1, dryskin:-1 },
     mgmt:"Kömür ETKİSİZ (tüm bağırsak yıkama: yavaş salımlı). İzotonik salin ile volüm; nefrotoksik ilaçları kes. Hemodiyaliz: düzey >4 mmol/L + böbrek bozukluğu, >5 mmol/L, nöbet/bilinç bozukluğu/hayatı tehdit eden aritmi; rebound için düzey tekrarı."
   },
@@ -473,9 +473,25 @@ const TOXIDROMES = [
     id:"inh", name:"İzoniazid", short:"İzoniazid", color:"#e74c3c",
     agents:"İzoniazid; benzer: hidrazin, Gyromitra mantarı",
     classic:"Alımdan 30 dk-2 s sonra benzodiazepine dirençli tekrarlayan nöbetler, laktik asidoz, koma",
-    w:{ h_inh:5, refractseiz:5, seizure:3, lactate:3, agacid:3, coma:2, delirium:1, vomit:1, tachy:1,
+    w:{ h_inh:5, refractseiz:5, seizure:3, tonguebite:1, lactate:3, agacid:3, coma:2, delirium:1, vomit:1, tachy:1,
         miosis:-1, brady:-1 },
     mgmt:"Piridoksin IV: alınan INH ile gram-gram (bilinmeyen: 5 g), tekrar edilebilir; benzodiazepin eş zamanlı. Dirençli: propofol, barbitürat; hemodiyaliz."
+  },
+  {
+    id:"apap", name:"Parasetamol (hepatotoksik)", short:"Parasetamol", color:"#795548",
+    agents:"Parasetamol tek başına veya kombine preparatlar (soğuk algınlığı ilaçları, opioid kombinasyonları); kronik aşırı kullanım",
+    classic:"İlk 24 saat sessiz (bulantı, halsizlik); 24-72 s sağ üst kadran ağrısı, ALT/AST yükselişi; 72-96 s hepatik yetmezlik, sarılık, koagülopati, ensefalopati, laktik asidoz, böbrek hasarı. Tanı nomogram/düzeyle konur",
+    w:{ h_apap:4, apaplevel:5, lfthigh:3, hepatomeg:2, jaundice:3, vomit:1, abdpain:1, agacid:1, lactate:1, aki:1, delirium:1, coma:1,
+        mydriasis:-1, miosis:-1, seizure:-1, bradypnea:-1 },
+    mgmt:"NAC: nomogramda çizgi üstü, zamanı bilinmeyen alım + ölçülebilir düzey/ALT yüksekliği, >8 saat gecikmede düzey beklemeden. IV 21 s (150/50/100 mg/kg) ya da 2 torbalı protokol; hepatotoksisitede ALT/INR düzelene kadar sürdür. King's College ölçütlerinde transplant merkezine danış."
+  },
+  {
+    id:"iron", name:"Demir", short:"Demir", color:"#b71c1c",
+    agents:"Demir preparatları (sülfat, fumarat, glukonat), gebelik vitaminleri; elementer demir >40-60 mg/kg ciddi",
+    classic:"Evre 1 (0-6 s): kusma, kanlı ishal, karın ağrısı; evre 2 görünür iyileşme; evre 3 (6-72 s): şok, AG metabolik asidoz, laktat, koagülopati, hiperglisemi, lökositoz; evre 4 hepatotoksisite; evre 5 pilor darlığı. Kömür bağlamaz",
+    w:{ h_iron:5, vomit:3, diarrhea:2, abdpain:2, hypot:2, weakpulse:1, agacid:3, lactate:2, hypergly:1, leuko:1, lfthigh:1, coma:1, sedation:1, tachy:1,
+        miosis:-1, mydriasis:-1, bradypnea:-1, bs_down:-1 },
+    mgmt:"Sıvı resüsitasyonu; tüm bağırsak yıkama (radyoopak tabletler); deferoksamin 15 mg/kg/s (demir >500 µg/dL, asidoz, şok, bilinç bozukluğu). Asemptomatik ve 6 saatte demir <350 µg/dL ise taburcu düşün."
   },
   {
     id:"clon", name:"Klonidin / imidazolin", short:"Klonidin", color:"#34495e",
@@ -504,9 +520,9 @@ const DISCRIMINATORS = [
 
 /* Antidot / tedavi tablosu — erişkin dozları; kg girildiyse hesaplanır */
 const ANTIDOTES = [
-  { id:"nalox", name:"Nalokson", tox:"Opioid", dose:"0,04-0,4 mg IV (apne yoksa düşük başla), 2-3 dk'da bir titre; 2 mg → toplam 10 mg'a kadar. IM/IN 0,4-2 mg. İnfüzyon: etkili dozun 2/3'ü / saat.", note:"Hedef yeterli ventilasyon (uyanıklık değil). Uzun etkili opioid/metadonda ≥6-24 s gözlem." },
+  { id:"nalox", name:"Nalokson", tox:"Opioid", dose:"0,04-0,4 mg IV (apne yoksa düşük başla), 2-3 dk'da bir titre; 2 mg → toplam 10 mg'a kadar. IM 0,4-2 mg. IN: 4 mg tek doz sprey (8 mg formu da var) veya atomizerle 2 mg (1 mg/mL, her burun deliğine 1 mL); 0,4 mg/mL ampul IN için uygun değil. İnfüzyon: etkili dozun 2/3'ü / saat.", note:"Hedef yeterli ventilasyon (uyanıklık değil). Uzun etkili opioid/metadonda ≥6-24 s gözlem." },
   { id:"atro", name:"Atropin", tox:"Kolinerjik (OP/karbamat)", dose:"1-3 mg IV (ağırsa 3-5 mg); her 3-5 dk'da doz ikiye katlanır, bronşiyal sekresyonlar kuruyana kadar. Sonra toplam yükleme dozunun %10-20'si/saat infüzyon.", note:"Pupil ve kalp hızı hedef değil. Bronkore çözülene kadar." , perkg:null },
-  { id:"pam", name:"Pralidoksim (2-PAM)", tox:"Organofosfat", dose:"30 mg/kg IV (1-2 g) 15-30 dk'da, sonra 8-10 mg/kg/s (≈500 mg/s) infüzyon.", perkg:{load:30,unit:"mg",rate:8,rateUnit:"mg/s"}, note:"Atropin verildikten sonra, 'yaşlanma' öncesi erken. Karbamatta tartışmalı ama zararı az." },
+  { id:"pam", name:"Pralidoksim (2-PAM)", tox:"Organofosfat", dose:"30 mg/kg IV (maks 2 g) 15-30 dk'da, sonra 8-10 mg/kg/s (maks 650 mg/s) infüzyon.", perkg:{load:30,unit:"mg",max:2000,rate:8,rateUnit:"mg/s",rateMax:650}, note:"Atropin verildikten sonra, 'yaşlanma' öncesi erken. Karbamatta tartışmalı ama zararı az." },
   { id:"phys", name:"Fizostigmin", tox:"Antikolinerjik deliryum", dose:"0,5-2 mg IV yavaş (≥5 dk), 10-15 dk'da tekrar edilebilir; etkisi 30-60 dk.", note:"KONTRENDİKE: QRS >100 ms / TSA şüphesi, bradikardi, bronkospazm. Atropin hazır olsun." },
   { id:"fluma", name:"Flumazenil", tox:"Benzodiazepin (izole)", dose:"0,2 mg IV 30 sn'de, 1 dk arayla 0,2-0,5 mg; maks 1-3 mg.", note:"Kronik benzodiazepin kullanıcısı, nöbet öyküsü, TSA/prokonvülzan ko-ingestiyonda kontrendike. Rutin kullanılmaz." },
   { id:"bicarb", name:"Sodyum bikarbonat", tox:"Na kanal blokajı (TSA), salisilat", dose:"TSA: 1-2 mEq/kg IV bolus (50-100 mEq), QRS daralana / pH 7,50-7,55 olana kadar tekrar; sonra 150 mEq/1 L D5W infüzyon. Salisilat: 1-2 mEq/kg bolus, sonra 150 mEq/1 L D5W (K ekle) idame ×2-3, hedef idrar pH 7,5-8.", perkg:{load:1,unit:"mEq",max:100,range:"1-2"}, note:"Potasyum ve pH takibi (serum pH <7,55-7,6)." },
@@ -557,3 +573,5 @@ const TOX_TABLE = [
   ["Alkol yoksunluğu","↑","↑","↑","↑","Midriyazis","Terli","↑","Tremor, hallüsinasyon, DT","48-96 s, nöbet 12-48 s"],
   ["Opioid yoksunluğu","↑","↑","−","−","Midriyazis","Piloereksiyon","↑↑ (ishal)","Anksiyöz, uyanık","Esneme, lakrimasyon, rinore; hayatı tehdit etmez"]
 ];
+/* TOX_TABLE veri satırlarıyla (başlık hariç) hizalı toksidrom id'leri — sonuç sekmesinde satır vurgusu için */
+const TOX_TABLE_IDS = ["symp","antichol","cholin","opioid","sedhyp","serot","nms","sali","nachan","bbccb","digi","methb","asphyx","toxalc","etohwd","opwd"];
