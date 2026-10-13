@@ -9,6 +9,10 @@ Acil serviste kullanılmak üzere geliştirilmiş, **tek dosyalık** klinik kara
 Kurulum gerekmez, tarayıcıda doğrudan çalışır.
 (`https://drmehmettatli.github.io/veah-klinik-karar-destek/` adresi de aynı sayfaya yönlenir.)
 
+### 🧪 [Toksidrom Pusulası →](https://vanaciltip.me/veah-klinik-karar-destek/toksidrom/)
+
+Zehirlenmiş hastada toksidrom ayrımı: vital bulgular, gerçekçi vücut haritası üzerinde fizik muayene, EKG ve laboratuvar hesaplayıcıları (QTc, anyon açığı, ozmolar gap, Rumack-Matthew), rehberli ayrım soruları, 24 toksidrom için ağırlıklı sıralama, antidot dozları ve yapay zekâ ikinci görüşü. Kaynak kodu ve ayrıntılar: [`toksidrom/`](toksidrom/README.md).
+
 ---
 
 ## ⚠️ Sorumluluk Reddi
