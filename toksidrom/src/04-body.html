@@ -1,0 +1,307 @@
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <img src="gorseller/acil-logo.png" alt="SBÜ Van Eğitim ve Araştırma Hastanesi Acil Tıp Kliniği logosu" width="44" height="44">
+      <div>Toksidrom Pusulası<small>SBÜ Van EAH Acil Tıp Kliniği · zehirlenmede yatak başı karar desteği</small></div>
+    </div>
+    <span class="chip" id="patientChip">Yeni hasta</span>
+    <span class="chip" id="findingChip"><b>0</b> bulgu</span>
+    <div class="spacer"></div>
+    <button class="btn sm" id="btnNew" type="button">Yeni vaka</button>
+    <button class="btn sm primary" id="btnSave" type="button">Kaydet</button>
+  </header>
+
+  <nav class="rail" id="rail" aria-label="Bölümler"></nav>
+
+  <main class="main" id="main">
+
+    <!-- ========== HASTA ========== -->
+    <section class="view" data-view="patient">
+      <div class="view-head"><div><h2>Hasta ve maruziyet öyküsü</h2><p>Kimlik yerine takma ad kullanın. Öykü bulguları ayrım motoruna doğrudan ağırlık verir.</p></div></div>
+      <div class="card">
+        <h3>Kimlik</h3>
+        <div class="grid g4">
+          <div class="field"><label for="p_name">Takma ad / protokol</label><input id="p_name" placeholder="örn. Kırmızı alan 3"></div>
+          <div class="field"><label for="p_age">Yaş</label><input id="p_age" type="number" min="0" max="120" inputmode="numeric"></div>
+          <div class="field"><label for="p_sex">Cinsiyet</label><select id="p_sex"><option value="">—</option><option value="E">Erkek</option><option value="K">Kadın</option></select></div>
+          <div class="field"><label for="p_wt">Kilo <span class="unit">kg</span></label><input id="p_wt" type="number" min="1" max="300" inputmode="decimal" placeholder="70"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Maruziyet</h3>
+        <div class="grid g3">
+          <div class="field"><label for="p_agent">Şüpheli ajan(lar)</label><input id="p_agent" placeholder="örn. amitriptilin 25 mg ×30"></div>
+          <div class="field"><label for="p_time">Alımdan bu yana geçen süre <span class="unit">saat</span></label><input id="p_time" type="number" min="0" step="0.5" inputmode="decimal"></div>
+          <div class="field"><label for="p_route">Yol</label><select id="p_route"><option value="">—</option><option>Oral</option><option>İnhalasyon</option><option>IV / enjeksiyon</option><option>Dermal</option><option>Çoklu / bilinmiyor</option></select></div>
+          <div class="field"><label for="p_intent">Niyet</label><select id="p_intent"><option value="">—</option><option>Kasıtlı (özkıyım)</option><option>Kaza</option><option>Kötüye kullanım</option><option>Terapötik hata</option><option>Bilinmiyor</option></select></div>
+          <div class="field"><label for="p_meds">Kronik ilaçlar / evdeki ilaçlar</label><input id="p_meds" placeholder="SSRI, metformin, digoksin…"></div>
+          <div class="field"><label for="p_hx">Ek öykü</label><input id="p_hx" placeholder="psikiyatrik öykü, önceki alım, ortamda bulunanlar…"></div>
+        </div>
+        <div class="field" style="margin-top:12px"><label>Öykü bulguları (ayrım motoruna girer)</label><div class="tags" id="hxTags"></div></div>
+      </div>
+      <div class="card">
+        <h3>Kayıtlı vakalar</h3>
+        <p class="small muted" style="margin-bottom:8px">Bu tarayıcıda saklanır. Taşımak için JSON'u kopyalayıp başka cihazda yapıştırın.</p>
+        <div class="records" id="records"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn sm" id="btnExport" type="button">Vakayı JSON olarak kopyala</button>
+          <button class="btn sm" id="btnImport" type="button">JSON yapıştır ve yükle</button>
+        </div>
+        <textarea id="importBox" hidden placeholder="JSON'u buraya yapıştırın" style="margin-top:8px;width:100%"></textarea>
+      </div>
+    </section>
+
+    <!-- ========== VİTALLER ========== -->
+    <section class="view" data-view="vitals">
+      <div class="view-head"><div><h2>Vital bulgular</h2><p>Eşik dışı değerler otomatik olarak bulgu listesine düşer (taşikardi, hipertermi, hipoventilasyon…).</p></div></div>
+      <div class="card">
+        <div class="vitals" id="vitals"></div>
+        <div class="grid g3" style="margin-top:12px">
+          <div class="field"><label for="v_gcsE">GKS — Göz</label><select id="v_gcsE"><option value="">—</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
+          <div class="field"><label for="v_gcsV">GKS — Sözel</label><select id="v_gcsV"><option value="">—</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
+          <div class="field"><label for="v_gcsM">GKS — Motor</label><select id="v_gcsM"><option value="">—</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
+        </div>
+        <div id="vitalSummary" style="margin-top:12px" class="tags"></div>
+      </div>
+      <div class="card">
+        <h3>Mental durum ve genel görünüm</h3>
+        <div class="tags" id="mentalTags"></div>
+      </div>
+    </section>
+
+    <!-- ========== FİZİK MUAYENE ========== -->
+    <section class="view" data-view="exam">
+      <div class="view-head"><div><h2>Fizik muayene — vücut haritası</h2><p>Bölgeye tıklayın, bulguyu <b>Var</b> veya <b>Yok</b> olarak işaretleyin. "Yok" işaretleri de ayrımı güçlendirir (örn. terleme yok → antikolinerjik lehine).</p></div></div>
+      <div class="view-switch" id="viewSwitch">
+        <button type="button" data-v="front" class="active">Ön</button>
+        <button type="button" data-v="back">Arka</button>
+        <button type="button" data-v="face">Yüz / pupiller</button>
+      </div>
+      <div class="bodymap">
+        <div class="figure-wrap" id="figure"></div>
+        <div>
+          <div class="region-panel" id="regionPanel"><h3><span class="dot"></span> Bölge seçin</h3><p class="small muted">Figürdeki bir noktaya tıklayın.</p></div>
+          <div class="card" style="margin-top:12px">
+            <h3>İşaretli bulgular</h3>
+            <div class="marked-summary" id="markedSummary"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== EKG ========== -->
+    <section class="view" data-view="ecg">
+      <div class="view-head"><div><h2>EKG</h2><p>Aralıkları girin; QTc dört formülle hesaplanır, toksikolojik eşikler bayraklanır.</p></div></div>
+      <div class="grid g2">
+        <div class="card">
+          <h3>Ölçümler</h3>
+          <div class="grid g3">
+            <div class="field"><label for="e_hr">Hız <span class="unit">/dk</span></label><input id="e_hr" type="number" inputmode="numeric"></div>
+            <div class="field"><label for="e_rhythm">Ritim</label><select id="e_rhythm"><option value="">—</option><option>Sinüs</option><option>Sinüs taşikardisi</option><option>Sinüs bradikardisi</option><option>Kavşak ritmi</option><option>Atriyal fibrilasyon</option><option>Atriyal taşikardi + blok</option><option>Geniş kompleks taşikardi</option><option>VT</option><option>Bidireksiyonel VT</option><option>Torsades</option><option>Tam AV blok</option><option>Pace</option></select></div>
+            <div class="field"><label for="e_pr">PR <span class="unit">ms</span></label><input id="e_pr" type="number" inputmode="numeric"></div>
+            <div class="field"><label for="e_qrs">QRS <span class="unit">ms</span></label><input id="e_qrs" type="number" inputmode="numeric"></div>
+            <div class="field"><label for="e_qt">QT <span class="unit">ms</span></label><input id="e_qt" type="number" inputmode="numeric"></div>
+            <div class="field"><label for="e_avr">aVR R dalgası <span class="unit">mm</span></label><input id="e_avr" type="number" step="0.5" inputmode="decimal"></div>
+            <div class="field"><label for="e_avrrs">aVR R/S oranı</label><input id="e_avrrs" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="e_axis">Terminal aks</label><select id="e_axis"><option value="">—</option><option value="normal">Normal</option><option value="right">Sağ (terminal 40 ms)</option><option value="left">Sol</option></select></div>
+            <div class="field"><label for="e_k">Potasyum <span class="unit">mmol/L</span></label><input id="e_k" type="number" step="0.1" inputmode="decimal"></div>
+          </div>
+          <div class="field" style="margin-top:12px"><label>Morfolojik bulgular</label><div class="tags" id="ecgTags"></div></div>
+        </div>
+        <div class="card">
+          <h3>Yorum</h3>
+          <dl class="kv" id="qtcOut"></dl>
+          <div class="ecg-flags" id="ecgFlags" style="margin-top:12px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Toksikolojik EKG hızlı başvuru</h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Bulgu</th><th>Düşündürür</th><th>Eşik / not</th></tr></thead>
+          <tbody>
+            <tr><td>QRS genişlemesi</td><td>Na kanal blokajı: TSA, karbamazepin, difenhidramin, kokain, propranolol, bupropion, klorokin, lokal anestezik; hiperkalemi</td><td>>100 ms nöbet riski (%26); >160 ms ventriküler aritmi (%50). NaHCO₃ bolus ile daralma tanısaldır.</td></tr>
+            <tr><td>aVR terminal R</td><td>TSA / Na kanal blokajı</td><td>R ≥3 mm veya R/S >0,7 → nöbet ve aritmi riski</td></tr>
+            <tr><td>QTc uzaması</td><td>Antipsikotikler, metadon, loperamid, ondansetron, sotalol, makrolid, antihistaminik, organofosfat, hipoK/hipoMg/hipoCa</td><td>>500 ms torsades riski belirgin; erkek ≥470 / kadın ≥480 uzamış. Mg, K >4, Mg >2, overdrive pacing.</td></tr>
+            <tr><td>Bradikardi / AV blok</td><td>BB, KKB, digoksin, klonidin, organofosfat, opioid, hiperkalemi</td><td>Digoksin: PR uzaması + artmış otomatisite (PVC, bidireksiyonel VT, bloklu AT)</td></tr>
+            <tr><td>ST 'çukur' depresyonu, kısa QT</td><td>Digoksin etkisi (toksisite göstergesi değil)</td><td>Toksisitede ritim bozuklukları belirleyici</td></tr>
+            <tr><td>Brugada paterni (V1-V3)</td><td>TSA, kokain, propafenon, lityum, difenhidramin</td><td>Kötü prognoz işareti, bikarbonat</td></tr>
+            <tr><td>Sivri T, geniş QRS, sinüs dalgası</td><td>Hiperkalemi (digoksin akut, süksinilkolin, MH, rabdomiyoliz)</td><td>Kalsiyum (digoksinde değil), insülin-glukoz</td></tr>
+            <tr><td>U dalgası, T düzleşmesi</td><td>Hipokalemi (salisilat, teofilin, β-agonist, baryum, diüretik)</td><td>K replasmanı</td></tr>
+            <tr><td>ST elevasyonu</td><td>Kokain (vazospazm), CO, siyanür, metamfetamin</td><td>Kokainde beta bloker tek başına kullanma</td></tr>
+            <tr><td>Sinüs taşikardisi</td><td>Sempatomimetik, antikolinerjik, yoksunluk, salisilat, teofilin, hipoksi</td><td>Hipotansiyonla birlikte: TSA, dihidropiridin KKB, siyanür</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ========== LAB & HESAP ========== -->
+    <section class="view" data-view="lab">
+      <div class="view-head"><div><h2>Laboratuvar ve hesaplayıcılar</h2><p>Değerleri girin; anyon açığı, ozmolar gap, toksik alkol tahmini ve nomogram otomatik hesaplanır ve bulgu olarak işlenir.</p></div></div>
+      <div class="calc">
+        <div class="card">
+          <h3>Anyon açığı ve kan gazı</h3>
+          <div class="grid g3">
+            <div class="field"><label for="l_na">Na</label><input id="l_na" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_cl">Cl</label><input id="l_cl" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_hco3">HCO₃</label><input id="l_hco3" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_alb">Albümin <span class="unit">g/dL</span></label><input id="l_alb" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_ph">pH</label><input id="l_ph" type="number" step="0.01" inputmode="decimal"></div>
+            <div class="field"><label for="l_pco2">pCO₂ <span class="unit">mmHg</span></label><input id="l_pco2" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_lac">Laktat <span class="unit">mmol/L</span></label><input id="l_lac" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_k">K <span class="unit">mmol/L</span></label><input id="l_k" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_ca">İyonize Ca <span class="unit">mmol/L</span></label><input id="l_ca" type="number" step="0.01" inputmode="decimal"></div>
+          </div>
+          <div class="result" id="agOut"><span class="sub">Na, Cl ve HCO₃ girin.</span></div>
+        </div>
+        <div class="card">
+          <h3>Ozmolar gap ve toksik alkol tahmini</h3>
+          <div class="grid g3">
+            <div class="field"><label for="l_osm">Ölçülen ozmolalite <span class="unit">mOsm/kg</span></label><input id="l_osm" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_glu">Glukoz <span class="unit">mg/dL</span></label><input id="l_glu" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_bun">BUN <span class="unit">mg/dL</span></label><input id="l_bun" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_etoh">Etanol <span class="unit">mg/dL</span></label><input id="l_etoh" type="number" inputmode="decimal" placeholder="0"></div>
+          </div>
+          <div class="result" id="osmOut"><span class="sub">Ölçülen ozmolalite, Na, glukoz ve BUN girin (Na üstteki alandan alınır).</span></div>
+        </div>
+        <div class="card">
+          <h3>Parasetamol — Rumack-Matthew nomogramı</h3>
+          <div class="grid g3">
+            <div class="field"><label for="l_apap">Parasetamol düzeyi <span class="unit">µg/mL</span></label><input id="l_apap" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_apapt">Alımdan sonra <span class="unit">saat</span></label><input id="l_apapt" type="number" step="0.5" inputmode="decimal" placeholder="4-24"></div>
+          </div>
+          <canvas id="rmCanvas" width="520" height="300" style="margin-top:10px;width:100%;height:auto"></canvas>
+          <div class="result" id="apapOut"><span class="sub">Düzey ve zamanı girin. Tek akut alım, 4-24 saat için geçerlidir.</span></div>
+        </div>
+        <div class="card">
+          <h3>Özel düzeyler ve ko-oksimetri</h3>
+          <div class="grid g3">
+            <div class="field"><label for="l_sali">Salisilat <span class="unit">mg/dL</span></label><input id="l_sali" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_digi">Digoksin <span class="unit">ng/mL</span></label><input id="l_digi" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_li">Lityum <span class="unit">mmol/L</span></label><input id="l_li" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_methb">MetHb <span class="unit">%</span></label><input id="l_methb" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_cohb">COHb <span class="unit">%</span></label><input id="l_cohb" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_ck">CK <span class="unit">U/L</span></label><input id="l_ck" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_cr">Kreatinin <span class="unit">mg/dL</span></label><input id="l_cr" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_alt">ALT <span class="unit">U/L</span></label><input id="l_alt" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_wbc">Lökosit <span class="unit">×10³</span></label><input id="l_wbc" type="number" step="0.1" inputmode="decimal"></div>
+          </div>
+          <div class="result" id="levelsOut"><span class="sub">Düzeyler eşiklerle yorumlanır.</span></div>
+          <div class="field" style="margin-top:12px"><label>Diğer laboratuvar bulguları</label><div class="tags" id="labTags"></div></div>
+        </div>
+        <div class="card">
+          <h3>Digoksin-Fab flakon hesabı</h3>
+          <div class="grid g3">
+            <div class="field"><label for="f_level">Serum digoksin <span class="unit">ng/mL</span></label><input id="f_level" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="f_mg">Alınan digoksin <span class="unit">mg</span></label><input id="f_mg" type="number" step="0.25" inputmode="decimal"></div>
+          </div>
+          <div class="result" id="fabOut"><span class="sub">Kilo Hasta sekmesinden alınır.</span></div>
+        </div>
+        <div class="card">
+          <h3>Nalokson / NAC / HIE hızlı doz</h3>
+          <div class="result" id="quickDose"><span class="sub">Kilo girildiğinde kilo bazlı dozlar burada görünür.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== AYRIM ========== -->
+    <section class="view" data-view="qa">
+      <div class="view-head"><div><h2>Rehberli ayrım</h2><p>Motor, sıralamanın tepesindeki toksidromları en iyi ayıran, henüz yanıtlanmamış soruyu seçer. Yanıtlar muayene bulgularıyla aynı havuza yazılır.</p></div></div>
+      <div class="qa">
+        <div>
+          <div class="qcard" id="qcard"></div>
+          <div class="card" style="margin-top:14px">
+            <h3>Klasik ayrım noktaları</h3>
+            <div class="tablewrap"><table><thead><tr><th>Ayrım</th><th>Anahtar</th></tr></thead><tbody id="discTable"></tbody></table></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Yanıt geçmişi</h3>
+          <div class="qhist" id="qhist"></div>
+          <button class="btn sm" id="btnQReset" type="button" style="margin-top:10px">Atlananları sıfırla</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SONUÇ ========== -->
+    <section class="view" data-view="result">
+      <div class="view-head"><div><h2>Değerlendirme</h2><p>Puanlama, bulgu ağırlıklarının toplamıdır; kesin tanı değil, ayırıcı tanı önceliklendirmesidir. Karışık alımlar klasik tabloyu bozar.</p></div></div>
+      <div id="resultBody"></div>
+      <div class="card">
+        <h3>Toksidrom hızlı tablosu</h3>
+        <div class="tablewrap"><table id="toxTable"></table></div>
+      </div>
+    </section>
+
+    <!-- ========== ANTİDOT ========== -->
+    <section class="view" data-view="anti">
+      <div class="view-head"><div><h2>Antidotlar ve yönetim</h2><p>Erişkin dozları. Kilo girildiyse kilo bazlı hesaplar satır altında görünür. Her zaman kurum protokolü ve zehir danışma (114) ile doğrulayın.</p></div>
+        <div class="field" style="min-width:220px"><label for="antiFilter">Ara</label><input id="antiFilter" placeholder="nalokson, TSA, siyanür…"></div></div>
+      <div class="anti" id="antiList"></div>
+    </section>
+
+    <!-- ========== AI ========== -->
+    <section class="view" data-view="ai">
+      <div class="view-head"><div><h2>Yapay zekâ danışmanı</h2><p>Vaka özeti otomatik derlenir. Claude (claude.ai içinde) veya Gemini (API anahtarı ile, dosya yerel açıldığında) ile ikinci görüş alın. Kimlik bilgisi göndermeyin.</p></div></div>
+      <div class="grid g2">
+        <div class="card">
+          <h3>Vaka özeti</h3>
+          <div class="summary" id="caseSummary"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn sm" id="btnCopySummary" type="button">Özeti kopyala</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Soru</h3>
+          <div class="field"><label for="aiQ">Danışmana soru</label><textarea id="aiQ">Bu vakada en olası toksidrom(lar) nedir, hangi ek bulgu/tetkik ayrımı netleştirir ve ilk 1 saatte hangi tedavi adımları öncelikli?</textarea></div>
+          <div class="field" style="margin-top:10px"><label for="aiProvider">Sağlayıcı</label><select id="aiProvider"><option value="claude">Claude (claude.ai artifact içinde)</option><option value="gemini">Gemini API (yerel dosya + anahtar)</option></select></div>
+          <div id="geminiCfg" hidden class="grid g2" style="margin-top:10px">
+            <div class="field"><label for="geminiKey">Gemini API anahtarı</label><input id="geminiKey" type="password" placeholder="AIza…" autocomplete="off"></div>
+            <div class="field"><label for="geminiModel">Model</label><input id="geminiModel" value="gemini-2.5-flash"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn primary" id="btnAsk" type="button">Danış</button>
+            <button class="btn" id="btnStop" type="button" disabled>Durdur</button>
+          </div>
+          <p class="tiny muted" id="aiStatus" style="margin-top:8px"></p>
+        </div>
+      </div>
+      <div class="card"><h3>Yanıt</h3><div class="ai-out" id="aiOut">Henüz soru sorulmadı.</div></div>
+    </section>
+
+    <!-- ========== KAYNAKLAR ========== -->
+    <section class="view" data-view="refs">
+      <div class="view-head"><div><h2>Kaynaklar ve sınırlar</h2></div></div>
+      <div class="card">
+        <h3>Kaynaklar</h3>
+        <ul class="small" style="margin:0;padding-left:18px;line-height:1.7">
+          <li>UpToDate: General approach to drug poisoning in adults; Common poisoning syndromes (toxidromes) tablosu; Tricyclic antidepressant poisoning; Calcium channel blocker / beta blocker poisoning; Digoxin toxicity; Methemoglobinemia; Serotonin syndrome; Neuroleptic malignant syndrome; Salicylate poisoning; Methanol and ethylene glycol poisoning; Acetaminophen poisoning (13 Ekim 2026'da UpToDate Expert AI üzerinden doğrulandı).</li>
+          <li>Goldfrank's Toxicologic Emergencies, 11. baskı — toksidrom tablosu, antidot dozları.</li>
+          <li>Tintinalli's Emergency Medicine, 9. baskı — Bölüm 176-220.</li>
+          <li>Boyer EW, Shannon M. The serotonin syndrome. NEJM 2005;352:1112 — Hunter kriterleri (Dunkley 2003).</li>
+          <li>Rumack BH, Matthew H. Pediatrics 1975 — nomogram; 150 µg/mL / 4 s tedavi çizgisi.</li>
+          <li>EXTRIP önerileri (lityum, salisilat, toksik alkol, metformin) — ekstrakorporeal tedavi endikasyonları.</li>
+          <li>ACMT / AACT: Lipid emülsiyonu, yüksek doz insülin bildirileri; St-Onge M ve ark. Crit Care Med 2017 (KKB).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Künye</h3>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <img src="gorseller/acil-logo.png" alt="" width="96" height="96" style="flex:none">
+          <p class="small" style="max-width:60ch">Sağlık Bilimleri Üniversitesi Van Eğitim ve Araştırma Hastanesi Acil Tıp Kliniği eğitim aracı. Asistan eğitimi ve yatak başı karar desteği için hazırlanmıştır; Ulusal Zehir Danışma Merkezi: 114.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Sınırlar</h3>
+        <p class="small">Bu araç eğitim ve karar desteği amaçlıdır; puanlama uzlaşı tablolarından türetilmiş sezgisel ağırlıklardır, doğrulanmış bir klinik skor değildir. Karışık alımlar, kronik hastalıklar ve çocuk hastalarda bulgular klasik tablodan sapar. Tüm dozları kurum protokolü, ürün bilgisi ve Ulusal Zehir Danışma Merkezi (UZEM, 114) ile doğrulayın.</p>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <h4>Toksidrom sıralaması</h4>
+    <div class="rank" id="rank"></div>
+    <h4 style="margin-top:16px">Kritik uyarılar</h4>
+    <div id="alerts" class="ecg-flags"></div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
