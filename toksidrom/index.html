@@ -1,0 +1,1686 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Toksidrom Pusulası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: üç sütun klinik çalışma masası — sol sekme rayı, orta çalışma alanı, sağda canlı toksidrom sıralaması. */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --panel-2:#f6f8fa; --line:#d6dce3; --line-2:#e6eaef;
+  --fg:#17212b; --fg-2:#4a5968; --fg-3:#7a8794;
+  --accent:#1d6f8a; --accent-2:#e4f1f5; --accent-fg:#ffffff;
+  --pin:#d4731c; --pin-2:#fbe9d6;
+  --ok:#2b8a4b; --ok-2:#e3f3e8; --warn:#b7791f; --warn-2:#fbf0d8; --crit:#c0392b; --crit-2:#fbe3e0;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:"Source Sans 3","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  --disp:"Manrope","Segoe UI",system-ui,sans-serif;
+  --r:10px; --shadow:0 1px 2px rgba(23,33,43,.06),0 6px 18px -8px rgba(23,33,43,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1519; --panel:#161d24; --panel-2:#1c252e; --line:#2a3642; --line-2:#222d37;
+    --fg:#e6ecf1; --fg-2:#aab6c2; --fg-3:#7d8a97;
+    --accent:#4fb3cf; --accent-2:#163542; --accent-fg:#0b1216;
+    --pin:#f0953f; --pin-2:#3a2914;
+    --ok:#4fc56f; --ok-2:#15301d; --warn:#e3a94a; --warn-2:#3a2d12; --crit:#f06a5b; --crit-2:#3d1a16;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px -10px rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --panel:#161d24; --panel-2:#1c252e; --line:#2a3642; --line-2:#222d37;
+  --fg:#e6ecf1; --fg-2:#aab6c2; --fg-3:#7d8a97;
+  --accent:#4fb3cf; --accent-2:#163542; --accent-fg:#0b1216;
+  --pin:#f0953f; --pin-2:#3a2914;
+  --ok:#4fc56f; --ok-2:#15301d; --warn:#e3a94a; --warn-2:#3a2d12; --crit:#f06a5b; --crit-2:#3d1a16;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px -10px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--disp);margin:0;text-wrap:balance;line-height:1.2}
+h2{font-size:1.25rem;font-weight:700}
+h3{font-size:1.02rem;font-weight:700}
+h4{font-size:.86rem;font-weight:700;color:var(--fg-2);text-transform:uppercase;letter-spacing:.06em}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--fg-2)}
+.small{font-size:.86rem}
+.tiny{font-size:.78rem}
+
+/* ---------- çerçeve ---------- */
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 300px;grid-template-rows:auto minmax(0,1fr);height:100%;min-height:0}
+.top{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:20;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:800;font-size:1.1rem;letter-spacing:-.01em}
+.brand img{width:44px;height:44px;border-radius:50%;flex:none;background:#fff;box-shadow:0 0 0 1px var(--line)}
+.brand small{display:block;font:500 .72rem var(--sans);color:var(--fg-3);letter-spacing:.04em;text-transform:uppercase}
+.top .spacer{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);font-size:.82rem;color:var(--fg-2);white-space:nowrap}
+.chip b{color:var(--fg)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font-weight:600;font-size:.88rem;line-height:1.1}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:4px 9px;font-size:.8rem}
+.btn.danger{color:var(--crit)}
+.btn:disabled{opacity:.5;cursor:default}
+
+.rail{border-right:1px solid var(--line);background:var(--panel);padding:10px 8px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.rail button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:var(--fg-2);font-weight:600;font-size:.9rem}
+.rail button svg{width:18px;height:18px;flex:none;opacity:.8}
+.rail button:hover{background:var(--panel-2);color:var(--fg)}
+.rail button.active{background:var(--accent-2);color:var(--accent)}
+.rail button .cnt{margin-left:auto;font:600 .72rem var(--mono);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:1px 6px;color:var(--fg-2)}
+.rail button.active .cnt{background:var(--panel);border-color:transparent}
+.rail .sep{height:1px;background:var(--line-2);margin:6px 4px}
+
+.main{overflow:auto;padding:18px 20px 40px;min-width:0}
+.side{border-left:1px solid var(--line);background:var(--panel);overflow:auto;padding:14px;min-width:0}
+
+.view{display:none;max-width:1100px}
+.view.active{display:block}
+.view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.view-head p{color:var(--fg-2);max-width:62ch}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.card+.card{margin-top:14px}
+.card h3{margin-bottom:10px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:.78rem;font-weight:600;color:var(--fg-2);letter-spacing:.02em}
+.field input,.field select,.field textarea{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);min-width:0;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-2)}
+.field .unit{font:500 .74rem var(--mono);color:var(--fg-3)}
+.field.flag-warn input{border-color:var(--warn);background:var(--warn-2)}
+.field.flag-crit input{border-color:var(--crit);background:var(--crit-2)}
+.field .hint{font-size:.76rem;color:var(--fg-3)}
+textarea{resize:vertical;min-height:70px}
+
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel-2);font-size:.82rem;font-weight:500;cursor:pointer;user-select:none}
+.tag:hover{border-color:var(--accent)}
+.tag.on{background:var(--accent-2);border-color:var(--accent);color:var(--accent)}
+.tag.on.neg{background:var(--crit-2);border-color:var(--crit);color:var(--crit)}
+.tag .k{font:600 .7rem var(--mono);opacity:.7}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.74rem;font-weight:700;letter-spacing:.02em}
+.pill.ok{background:var(--ok-2);color:var(--ok)} .pill.warn{background:var(--warn-2);color:var(--warn)} .pill.crit{background:var(--crit-2);color:var(--crit)} .pill.info{background:var(--accent-2);color:var(--accent)} .pill.neutral{background:var(--panel-2);color:var(--fg-2);border:1px solid var(--line)}
+
+/* vital kartları */
+.vitals{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.vital{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.vital label{font-size:.74rem;font-weight:700;color:var(--fg-2);text-transform:uppercase;letter-spacing:.05em}
+.vital .row{display:flex;align-items:baseline;gap:6px}
+.vital input{width:100%;font:600 1.25rem var(--mono);padding:4px 6px;border:1px solid transparent;border-radius:6px;background:var(--panel)}
+.vital input:focus{border-color:var(--accent);outline:none}
+.vital .unit{font:500 .74rem var(--mono);color:var(--fg-3);white-space:nowrap}
+.vital .st{font-size:.76rem;font-weight:700;min-height:1.1em}
+.vital.warn{border-color:var(--warn)} .vital.warn .st{color:var(--warn)}
+.vital.crit{border-color:var(--crit)} .vital.crit .st{color:var(--crit)}
+.vital.ok .st{color:var(--ok)}
+
+/* vücut haritası */
+.bodymap{display:grid;grid-template-columns:minmax(260px,420px) minmax(0,1fr);gap:16px;align-items:start}
+.figure-wrap{position:relative;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.figure-wrap img{display:block;width:100%;height:auto;max-width:100%;user-select:none;-webkit-user-drag:none}
+.figure-wrap .hs{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:2px solid rgba(29,111,138,.75);background:rgba(29,111,138,.14);display:flex;align-items:center;justify-content:center;padding:0;transition:transform .12s,background .12s}
+.figure-wrap .hs:hover{background:rgba(29,111,138,.32);transform:translate(-50%,-50%) scale(1.12)}
+.figure-wrap .hs.active{border-color:var(--pin);background:var(--pin-2);box-shadow:0 0 0 4px rgba(212,115,28,.25)}
+.figure-wrap .hs .n{font:700 .72rem var(--mono);color:var(--fg);background:var(--pin);color:#fff;border-radius:999px;min-width:17px;height:17px;display:none;align-items:center;justify-content:center;position:absolute;top:-7px;right:-9px;padding:0 4px}
+.figure-wrap .hs.marked .n{display:flex}
+.figure-wrap .hs.marked{border-color:var(--pin);background:rgba(212,115,28,.22)}
+.figure-wrap .hs.sel{outline:3px solid var(--pin);outline-offset:1px}
+.figure-wrap .lbl{position:absolute;transform:translate(-50%,0);font:600 .68rem var(--sans);color:var(--fg-2);background:color-mix(in srgb,var(--panel) 85%,transparent);padding:1px 6px;border-radius:4px;pointer-events:none;white-space:nowrap}
+.view-switch{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.view-switch button{padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-weight:600;font-size:.86rem}
+.view-switch button.active{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.region-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;position:sticky;top:10px}
+.region-panel h3{display:flex;align-items:center;gap:8px}
+.region-panel .dot{width:12px;height:12px;border-radius:50%;background:var(--pin);display:inline-block}
+.finding-list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.finding{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;border:1px solid var(--line-2);background:var(--panel-2)}
+.finding.on{border-color:var(--pin);background:var(--pin-2)}
+.finding.neg{border-color:var(--line);background:var(--panel);opacity:.85}
+.finding .t{font-weight:600;font-size:.9rem}
+.finding .s{font-size:.76rem;color:var(--fg-3)}
+.tri{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.tri button{border:0;background:var(--panel);padding:3px 8px;font-size:.76rem;font-weight:700;color:var(--fg-3)}
+.tri button+button{border-left:1px solid var(--line)}
+.tri button.y.on{background:var(--pin);color:#fff}
+.tri button.n.on{background:var(--fg-2);color:var(--panel)}
+.marked-summary{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+
+/* EKG */
+.ecg-flags{display:flex;flex-direction:column;gap:6px}
+.flag{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:8px 10px;border-radius:8px;border-left:4px solid var(--line);background:var(--panel-2)}
+.flag.crit{border-left-color:var(--crit)} .flag.warn{border-left-color:var(--warn)} .flag.ok{border-left-color:var(--ok)} .flag.info{border-left-color:var(--accent)}
+.flag b{font-size:.9rem}
+.flag span{font-size:.84rem;color:var(--fg-2)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.9rem}
+.kv dt{color:var(--fg-2)} .kv dd{margin:0;font-family:var(--mono);font-weight:600}
+
+/* sıralama paneli */
+.rank{display:flex;flex-direction:column;gap:8px}
+.rk{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:var(--panel-2);cursor:pointer}
+.rk:hover{border-color:var(--accent)}
+.rk .h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rk .h b{font-size:.9rem;font-family:var(--disp)}
+.rk .h .sc{font:700 .8rem var(--mono);color:var(--fg-2)}
+.rk .bar{height:6px;border-radius:999px;background:var(--line-2);margin-top:6px;overflow:hidden}
+.rk .bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .3s}
+.rk.top .bar i{background:var(--pin)}
+.rk .why{font-size:.76rem;color:var(--fg-3);margin-top:5px;line-height:1.35}
+.rk .why .plus{color:var(--ok)} .rk .why .minus{color:var(--crit)}
+.rk.open .why{display:block}
+.side h4{margin-bottom:8px}
+.side .empty{font-size:.86rem;color:var(--fg-3);padding:8px;border:1px dashed var(--line);border-radius:8px}
+
+/* soru-cevap */
+.qa{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:14px}
+.qcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.qcard .q{font:700 1.2rem var(--disp);margin:6px 0 4px}
+.qcard .why{color:var(--fg-2);font-size:.9rem}
+.qcard .ans{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.qcard .ans button{padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);font-weight:700}
+.qcard .ans .y:hover{border-color:var(--ok);color:var(--ok)} .qcard .ans .n:hover{border-color:var(--crit);color:var(--crit)}
+.qhist{display:flex;flex-direction:column;gap:4px;font-size:.84rem}
+.qhist div{display:flex;justify-content:space-between;gap:8px;padding:4px 8px;border-radius:6px;background:var(--panel-2)}
+
+/* tablo */
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line-2);vertical-align:top}
+th{font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-2);background:var(--panel-2)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+tr.hl td{background:var(--pin-2)}
+
+/* hesaplayıcılar */
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
+.result{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line)}
+.result .big{font:700 1.35rem var(--mono)}
+.result .sub{font-size:.82rem;color:var(--fg-2)}
+canvas{max-width:100%}
+
+/* antidot */
+.anti{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.anti .card h3{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.anti .dose{font-family:var(--mono);font-size:.84rem;background:var(--panel-2);border-radius:6px;padding:6px 8px;margin-top:6px;white-space:pre-wrap}
+.anti .note{font-size:.82rem;color:var(--fg-2);margin-top:6px}
+
+/* AI */
+.ai-out{white-space:pre-wrap;font-size:.92rem;line-height:1.5;padding:12px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);min-height:120px;max-height:60vh;overflow:auto}
+.summary{font-family:var(--mono);font-size:.8rem;white-space:pre-wrap;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:300px;overflow:auto}
+
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--panel);padding:8px 14px;border-radius:999px;font-size:.86rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+.toast.show{opacity:1}
+.notice{padding:10px 12px;border-radius:8px;background:var(--warn-2);border:1px solid var(--warn);color:var(--fg);font-size:.86rem}
+.records{display:flex;flex-direction:column;gap:6px}
+.rec{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
+.rec b{font-size:.92rem}
+.rec .m{font-size:.78rem;color:var(--fg-3)}
+
+@media (max-width:1100px){
+  .app{grid-template-columns:170px minmax(0,1fr)}
+  .side{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}
+  .qa{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  html,body{height:auto}
+  .app{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;height:auto}
+  .main{overflow:visible}
+  .side{overflow:visible}
+  .rail{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:6px 8px}
+  .rail button{width:auto;white-space:nowrap;padding:6px 10px}
+  .rail .sep{display:none}
+  .rail button .cnt{margin-left:4px}
+  .main{padding:14px 16px 30px}
+  .bodymap{grid-template-columns:1fr}
+  .region-panel{position:static}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <img src="gorseller/acil-logo.png" alt="SBÜ Van Eğitim ve Araştırma Hastanesi Acil Tıp Kliniği logosu" width="44" height="44">
+      <div>Toksidrom Pusulası<small>SBÜ Van EAH Acil Tıp Kliniği · zehirlenmede yatak başı karar desteği</small></div>
+    </div>
+    <span class="chip" id="patientChip">Yeni hasta</span>
+    <span class="chip" id="findingChip"><b>0</b> bulgu</span>
+    <div class="spacer"></div>
+    <button class="btn sm" id="btnNew" type="button">Yeni vaka</button>
+    <button class="btn sm primary" id="btnSave" type="button">Kaydet</button>
+  </header>
+
+  <nav class="rail" id="rail" aria-label="Bölümler"></nav>
+
+  <main class="main" id="main">
+
+    <!-- ========== HASTA ========== -->
+    <section class="view" data-view="patient">
+      <div class="view-head"><div><h2>Hasta ve maruziyet öyküsü</h2><p>Kimlik yerine takma ad kullanın. Öykü bulguları ayrım motoruna doğrudan ağırlık verir.</p></div></div>
+      <div class="card">
+        <h3>Kimlik</h3>
+        <div class="grid g4">
+          <div class="field"><label for="p_name">Takma ad / protokol</label><input id="p_name" placeholder="örn. Kırmızı alan 3"></div>
+          <div class="field"><label for="p_age">Yaş</label><input id="p_age" type="number" min="0" max="120" inputmode="numeric"></div>
+          <div class="field"><label for="p_sex">Cinsiyet</label><select id="p_sex"><option value="">—</option><option value="E">Erkek</option><option value="K">Kadın</option></select></div>
+          <div class="field"><label for="p_wt">Kilo <span class="unit">kg</span></label><input id="p_wt" type="number" min="1" max="300" inputmode="decimal" placeholder="70"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Maruziyet</h3>
+        <div class="grid g3">
+          <div class="field"><label for="p_agent">Şüpheli ajan(lar)</label><input id="p_agent" placeholder="örn. amitriptilin 25 mg ×30"></div>
+          <div class="field"><label for="p_time">Alımdan bu yana geçen süre <span class="unit">saat</span></label><input id="p_time" type="number" min="0" step="0.5" inputmode="decimal"></div>
+          <div class="field"><label for="p_route">Yol</label><select id="p_route"><option value="">—</option><option>Oral</option><option>İnhalasyon</option><option>IV / enjeksiyon</option><option>Dermal</option><option>Çoklu / bilinmiyor</option></select></div>
+          <div class="field"><label for="p_intent">Niyet</label><select id="p_intent"><option value="">—</option><option>Kasıtlı (özkıyım)</option><option>Kaza</option><option>Kötüye kullanım</option><option>Terapötik hata</option><option>Bilinmiyor</option></select></div>
+          <div class="field"><label for="p_meds">Kronik ilaçlar / evdeki ilaçlar</label><input id="p_meds" placeholder="SSRI, metformin, digoksin…"></div>
+          <div class="field"><label for="p_hx">Ek öykü</label><input id="p_hx" placeholder="psikiyatrik öykü, önceki alım, ortamda bulunanlar…"></div>
+        </div>
+        <div class="field" style="margin-top:12px"><label>Öykü bulguları (ayrım motoruna girer)</label><div class="tags" id="hxTags"></div></div>
+      </div>
+      <div class="card">
+        <h3>Kayıtlı vakalar</h3>
+        <p class="small muted" style="margin-bottom:8px">Bu tarayıcıda saklanır. Taşımak için JSON'u kopyalayıp başka cihazda yapıştırın.</p>
+        <div class="records" id="records"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn sm" id="btnExport" type="button">Vakayı JSON olarak kopyala</button>
+          <button class="btn sm" id="btnImport" type="button">JSON yapıştır ve yükle</button>
+        </div>
+        <textarea id="importBox" hidden placeholder="JSON'u buraya yapıştırın" style="margin-top:8px;width:100%"></textarea>
+      </div>
+    </section>
+
+    <!-- ========== VİTALLER ========== -->
+    <section class="view" data-view="vitals">
+      <div class="view-head"><div><h2>Vital bulgular</h2><p>Eşik dışı değerler otomatik olarak bulgu listesine düşer (taşikardi, hipertermi, hipoventilasyon…).</p></div></div>
+      <div class="card">
+        <div class="vitals" id="vitals"></div>
+        <div class="grid g3" style="margin-top:12px">
+          <div class="field"><label for="v_gcsE">GKS — Göz</label><select id="v_gcsE"><option value="">—</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
+          <div class="field"><label for="v_gcsV">GKS — Sözel</label><select id="v_gcsV"><option value="">—</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
+          <div class="field"><label for="v_gcsM">GKS — Motor</label><select id="v_gcsM"><option value="">—</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
+        </div>
+        <div id="vitalSummary" style="margin-top:12px" class="tags"></div>
+      </div>
+      <div class="card">
+        <h3>Mental durum ve genel görünüm</h3>
+        <div class="tags" id="mentalTags"></div>
+      </div>
+    </section>
+
+    <!-- ========== FİZİK MUAYENE ========== -->
+    <section class="view" data-view="exam">
+      <div class="view-head"><div><h2>Fizik muayene — vücut haritası</h2><p>Bölgeye tıklayın, bulguyu <b>Var</b> veya <b>Yok</b> olarak işaretleyin. "Yok" işaretleri de ayrımı güçlendirir (örn. terleme yok → antikolinerjik lehine).</p></div></div>
+      <div class="view-switch" id="viewSwitch">
+        <button type="button" data-v="front" class="active">Ön</button>
+        <button type="button" data-v="back">Arka</button>
+        <button type="button" data-v="face">Yüz / pupiller</button>
+      </div>
+      <div class="bodymap">
+        <div class="figure-wrap" id="figure"></div>
+        <div>
+          <div class="region-panel" id="regionPanel"><h3><span class="dot"></span> Bölge seçin</h3><p class="small muted">Figürdeki bir noktaya tıklayın.</p></div>
+          <div class="card" style="margin-top:12px">
+            <h3>İşaretli bulgular</h3>
+            <div class="marked-summary" id="markedSummary"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== EKG ========== -->
+    <section class="view" data-view="ecg">
+      <div class="view-head"><div><h2>EKG</h2><p>Aralıkları girin; QTc dört formülle hesaplanır, toksikolojik eşikler bayraklanır.</p></div></div>
+      <div class="grid g2">
+        <div class="card">
+          <h3>Ölçümler</h3>
+          <div class="grid g3">
+            <div class="field"><label for="e_hr">Hız <span class="unit">/dk</span></label><input id="e_hr" type="number" inputmode="numeric"></div>
+            <div class="field"><label for="e_rhythm">Ritim</label><select id="e_rhythm"><option value="">—</option><option>Sinüs</option><option>Sinüs taşikardisi</option><option>Sinüs bradikardisi</option><option>Kavşak ritmi</option><option>Atriyal fibrilasyon</option><option>Atriyal taşikardi + blok</option><option>Geniş kompleks taşikardi</option><option>VT</option><option>Bidireksiyonel VT</option><option>Torsades</option><option>Tam AV blok</option><option>Pace</option></select></div>
+            <div class="field"><label for="e_pr">PR <span class="unit">ms</span></label><input id="e_pr" type="number" inputmode="numeric"></div>
+            <div class="field"><label for="e_qrs">QRS <span class="unit">ms</span></label><input id="e_qrs" type="number" inputmode="numeric"></div>
+            <div class="field"><label for="e_qt">QT <span class="unit">ms</span></label><input id="e_qt" type="number" inputmode="numeric"></div>
+            <div class="field"><label for="e_avr">aVR R dalgası <span class="unit">mm</span></label><input id="e_avr" type="number" step="0.5" inputmode="decimal"></div>
+            <div class="field"><label for="e_avrrs">aVR R/S oranı</label><input id="e_avrrs" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="e_axis">Terminal aks</label><select id="e_axis"><option value="">—</option><option value="normal">Normal</option><option value="right">Sağ (terminal 40 ms)</option><option value="left">Sol</option></select></div>
+            <div class="field"><label for="e_k">Potasyum <span class="unit">mmol/L</span></label><input id="e_k" type="number" step="0.1" inputmode="decimal"></div>
+          </div>
+          <div class="field" style="margin-top:12px"><label>Morfolojik bulgular</label><div class="tags" id="ecgTags"></div></div>
+        </div>
+        <div class="card">
+          <h3>Yorum</h3>
+          <dl class="kv" id="qtcOut"></dl>
+          <div class="ecg-flags" id="ecgFlags" style="margin-top:12px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Toksikolojik EKG hızlı başvuru</h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Bulgu</th><th>Düşündürür</th><th>Eşik / not</th></tr></thead>
+          <tbody>
+            <tr><td>QRS genişlemesi</td><td>Na kanal blokajı: TSA, karbamazepin, difenhidramin, kokain, propranolol, bupropion, klorokin, lokal anestezik; hiperkalemi</td><td>>100 ms nöbet riski (%26); >160 ms ventriküler aritmi (%50). NaHCO₃ bolus ile daralma tanısaldır.</td></tr>
+            <tr><td>aVR terminal R</td><td>TSA / Na kanal blokajı</td><td>R ≥3 mm veya R/S >0,7 → nöbet ve aritmi riski</td></tr>
+            <tr><td>QTc uzaması</td><td>Antipsikotikler, metadon, loperamid, ondansetron, sotalol, makrolid, antihistaminik, organofosfat, hipoK/hipoMg/hipoCa</td><td>>500 ms torsades riski belirgin; erkek ≥470 / kadın ≥480 uzamış. Mg, K >4, Mg >2, overdrive pacing.</td></tr>
+            <tr><td>Bradikardi / AV blok</td><td>BB, KKB, digoksin, klonidin, organofosfat, opioid, hiperkalemi</td><td>Digoksin: PR uzaması + artmış otomatisite (PVC, bidireksiyonel VT, bloklu AT)</td></tr>
+            <tr><td>ST 'çukur' depresyonu, kısa QT</td><td>Digoksin etkisi (toksisite göstergesi değil)</td><td>Toksisitede ritim bozuklukları belirleyici</td></tr>
+            <tr><td>Brugada paterni (V1-V3)</td><td>TSA, kokain, propafenon, lityum, difenhidramin</td><td>Kötü prognoz işareti, bikarbonat</td></tr>
+            <tr><td>Sivri T, geniş QRS, sinüs dalgası</td><td>Hiperkalemi (digoksin akut, süksinilkolin, MH, rabdomiyoliz)</td><td>Kalsiyum (digoksinde değil), insülin-glukoz</td></tr>
+            <tr><td>U dalgası, T düzleşmesi</td><td>Hipokalemi (salisilat, teofilin, β-agonist, baryum, diüretik)</td><td>K replasmanı</td></tr>
+            <tr><td>ST elevasyonu</td><td>Kokain (vazospazm), CO, siyanür, metamfetamin</td><td>Kokainde beta bloker tek başına kullanma</td></tr>
+            <tr><td>Sinüs taşikardisi</td><td>Sempatomimetik, antikolinerjik, yoksunluk, salisilat, teofilin, hipoksi</td><td>Hipotansiyonla birlikte: TSA, dihidropiridin KKB, siyanür</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ========== LAB & HESAP ========== -->
+    <section class="view" data-view="lab">
+      <div class="view-head"><div><h2>Laboratuvar ve hesaplayıcılar</h2><p>Değerleri girin; anyon açığı, ozmolar gap, toksik alkol tahmini ve nomogram otomatik hesaplanır ve bulgu olarak işlenir.</p></div></div>
+      <div class="calc">
+        <div class="card">
+          <h3>Anyon açığı ve kan gazı</h3>
+          <div class="grid g3">
+            <div class="field"><label for="l_na">Na</label><input id="l_na" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_cl">Cl</label><input id="l_cl" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_hco3">HCO₃</label><input id="l_hco3" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_alb">Albümin <span class="unit">g/dL</span></label><input id="l_alb" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_ph">pH</label><input id="l_ph" type="number" step="0.01" inputmode="decimal"></div>
+            <div class="field"><label for="l_pco2">pCO₂ <span class="unit">mmHg</span></label><input id="l_pco2" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_lac">Laktat <span class="unit">mmol/L</span></label><input id="l_lac" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_k">K <span class="unit">mmol/L</span></label><input id="l_k" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_ca">İyonize Ca <span class="unit">mmol/L</span></label><input id="l_ca" type="number" step="0.01" inputmode="decimal"></div>
+          </div>
+          <div class="result" id="agOut"><span class="sub">Na, Cl ve HCO₃ girin.</span></div>
+        </div>
+        <div class="card">
+          <h3>Ozmolar gap ve toksik alkol tahmini</h3>
+          <div class="grid g3">
+            <div class="field"><label for="l_osm">Ölçülen ozmolalite <span class="unit">mOsm/kg</span></label><input id="l_osm" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_glu">Glukoz <span class="unit">mg/dL</span></label><input id="l_glu" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_bun">BUN <span class="unit">mg/dL</span></label><input id="l_bun" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_etoh">Etanol <span class="unit">mg/dL</span></label><input id="l_etoh" type="number" inputmode="decimal" placeholder="0"></div>
+          </div>
+          <div class="result" id="osmOut"><span class="sub">Ölçülen ozmolalite, Na, glukoz ve BUN girin (Na üstteki alandan alınır).</span></div>
+        </div>
+        <div class="card">
+          <h3>Parasetamol — Rumack-Matthew nomogramı</h3>
+          <div class="grid g3">
+            <div class="field"><label for="l_apap">Parasetamol düzeyi <span class="unit">µg/mL</span></label><input id="l_apap" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_apapt">Alımdan sonra <span class="unit">saat</span></label><input id="l_apapt" type="number" step="0.5" inputmode="decimal" placeholder="4-24"></div>
+          </div>
+          <canvas id="rmCanvas" width="520" height="300" style="margin-top:10px;width:100%;height:auto"></canvas>
+          <div class="result" id="apapOut"><span class="sub">Düzey ve zamanı girin. Tek akut alım, 4-24 saat için geçerlidir.</span></div>
+        </div>
+        <div class="card">
+          <h3>Özel düzeyler ve ko-oksimetri</h3>
+          <div class="grid g3">
+            <div class="field"><label for="l_sali">Salisilat <span class="unit">mg/dL</span></label><input id="l_sali" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_digi">Digoksin <span class="unit">ng/mL</span></label><input id="l_digi" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_li">Lityum <span class="unit">mmol/L</span></label><input id="l_li" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_methb">MetHb <span class="unit">%</span></label><input id="l_methb" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_cohb">COHb <span class="unit">%</span></label><input id="l_cohb" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_ck">CK <span class="unit">U/L</span></label><input id="l_ck" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_cr">Kreatinin <span class="unit">mg/dL</span></label><input id="l_cr" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="l_alt">ALT <span class="unit">U/L</span></label><input id="l_alt" type="number" inputmode="decimal"></div>
+            <div class="field"><label for="l_wbc">Lökosit <span class="unit">×10³</span></label><input id="l_wbc" type="number" step="0.1" inputmode="decimal"></div>
+          </div>
+          <div class="result" id="levelsOut"><span class="sub">Düzeyler eşiklerle yorumlanır.</span></div>
+          <div class="field" style="margin-top:12px"><label>Diğer laboratuvar bulguları</label><div class="tags" id="labTags"></div></div>
+        </div>
+        <div class="card">
+          <h3>Digoksin-Fab flakon hesabı</h3>
+          <div class="grid g3">
+            <div class="field"><label for="f_level">Serum digoksin <span class="unit">ng/mL</span></label><input id="f_level" type="number" step="0.1" inputmode="decimal"></div>
+            <div class="field"><label for="f_mg">Alınan digoksin <span class="unit">mg</span></label><input id="f_mg" type="number" step="0.25" inputmode="decimal"></div>
+          </div>
+          <div class="result" id="fabOut"><span class="sub">Kilo Hasta sekmesinden alınır.</span></div>
+        </div>
+        <div class="card">
+          <h3>Nalokson / NAC / HIE hızlı doz</h3>
+          <div class="result" id="quickDose"><span class="sub">Kilo girildiğinde kilo bazlı dozlar burada görünür.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== AYRIM ========== -->
+    <section class="view" data-view="qa">
+      <div class="view-head"><div><h2>Rehberli ayrım</h2><p>Motor, sıralamanın tepesindeki toksidromları en iyi ayıran, henüz yanıtlanmamış soruyu seçer. Yanıtlar muayene bulgularıyla aynı havuza yazılır.</p></div></div>
+      <div class="qa">
+        <div>
+          <div class="qcard" id="qcard"></div>
+          <div class="card" style="margin-top:14px">
+            <h3>Klasik ayrım noktaları</h3>
+            <div class="tablewrap"><table><thead><tr><th>Ayrım</th><th>Anahtar</th></tr></thead><tbody id="discTable"></tbody></table></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Yanıt geçmişi</h3>
+          <div class="qhist" id="qhist"></div>
+          <button class="btn sm" id="btnQReset" type="button" style="margin-top:10px">Atlananları sıfırla</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SONUÇ ========== -->
+    <section class="view" data-view="result">
+      <div class="view-head"><div><h2>Değerlendirme</h2><p>Puanlama, bulgu ağırlıklarının toplamıdır; kesin tanı değil, ayırıcı tanı önceliklendirmesidir. Karışık alımlar klasik tabloyu bozar.</p></div></div>
+      <div id="resultBody"></div>
+      <div class="card">
+        <h3>Toksidrom hızlı tablosu</h3>
+        <div class="tablewrap"><table id="toxTable"></table></div>
+      </div>
+    </section>
+
+    <!-- ========== ANTİDOT ========== -->
+    <section class="view" data-view="anti">
+      <div class="view-head"><div><h2>Antidotlar ve yönetim</h2><p>Erişkin dozları. Kilo girildiyse kilo bazlı hesaplar satır altında görünür. Her zaman kurum protokolü ve zehir danışma (114) ile doğrulayın.</p></div>
+        <div class="field" style="min-width:220px"><label for="antiFilter">Ara</label><input id="antiFilter" placeholder="nalokson, TSA, siyanür…"></div></div>
+      <div class="anti" id="antiList"></div>
+    </section>
+
+    <!-- ========== AI ========== -->
+    <section class="view" data-view="ai">
+      <div class="view-head"><div><h2>Yapay zekâ danışmanı</h2><p>Vaka özeti otomatik derlenir. Claude (claude.ai içinde) veya Gemini (API anahtarı ile, dosya yerel açıldığında) ile ikinci görüş alın. Kimlik bilgisi göndermeyin.</p></div></div>
+      <div class="grid g2">
+        <div class="card">
+          <h3>Vaka özeti</h3>
+          <div class="summary" id="caseSummary"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn sm" id="btnCopySummary" type="button">Özeti kopyala</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Soru</h3>
+          <div class="field"><label for="aiQ">Danışmana soru</label><textarea id="aiQ">Bu vakada en olası toksidrom(lar) nedir, hangi ek bulgu/tetkik ayrımı netleştirir ve ilk 1 saatte hangi tedavi adımları öncelikli?</textarea></div>
+          <div class="field" style="margin-top:10px"><label for="aiProvider">Sağlayıcı</label><select id="aiProvider"><option value="claude">Claude (claude.ai artifact içinde)</option><option value="gemini">Gemini API (yerel dosya + anahtar)</option></select></div>
+          <div id="geminiCfg" hidden class="grid g2" style="margin-top:10px">
+            <div class="field"><label for="geminiKey">Gemini API anahtarı</label><input id="geminiKey" type="password" placeholder="AIza…" autocomplete="off"></div>
+            <div class="field"><label for="geminiModel">Model</label><input id="geminiModel" value="gemini-2.5-flash"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn primary" id="btnAsk" type="button">Danış</button>
+            <button class="btn" id="btnStop" type="button" disabled>Durdur</button>
+          </div>
+          <p class="tiny muted" id="aiStatus" style="margin-top:8px"></p>
+        </div>
+      </div>
+      <div class="card"><h3>Yanıt</h3><div class="ai-out" id="aiOut">Henüz soru sorulmadı.</div></div>
+    </section>
+
+    <!-- ========== KAYNAKLAR ========== -->
+    <section class="view" data-view="refs">
+      <div class="view-head"><div><h2>Kaynaklar ve sınırlar</h2></div></div>
+      <div class="card">
+        <h3>Kaynaklar</h3>
+        <ul class="small" style="margin:0;padding-left:18px;line-height:1.7">
+          <li>UpToDate: General approach to drug poisoning in adults; Common poisoning syndromes (toxidromes) tablosu; Tricyclic antidepressant poisoning; Calcium channel blocker / beta blocker poisoning; Digoxin toxicity; Methemoglobinemia; Serotonin syndrome; Neuroleptic malignant syndrome; Salicylate poisoning; Methanol and ethylene glycol poisoning; Acetaminophen poisoning (13 Ekim 2026'da UpToDate Expert AI üzerinden doğrulandı).</li>
+          <li>Goldfrank's Toxicologic Emergencies, 11. baskı — toksidrom tablosu, antidot dozları.</li>
+          <li>Tintinalli's Emergency Medicine, 9. baskı — Bölüm 176-220.</li>
+          <li>Boyer EW, Shannon M. The serotonin syndrome. NEJM 2005;352:1112 — Hunter kriterleri (Dunkley 2003).</li>
+          <li>Rumack BH, Matthew H. Pediatrics 1975 — nomogram; 150 µg/mL / 4 s tedavi çizgisi.</li>
+          <li>EXTRIP önerileri (lityum, salisilat, toksik alkol, metformin) — ekstrakorporeal tedavi endikasyonları.</li>
+          <li>ACMT / AACT: Lipid emülsiyonu, yüksek doz insülin bildirileri; St-Onge M ve ark. Crit Care Med 2017 (KKB).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Künye</h3>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <img src="gorseller/acil-logo.png" alt="" width="96" height="96" style="flex:none">
+          <p class="small" style="max-width:60ch">Sağlık Bilimleri Üniversitesi Van Eğitim ve Araştırma Hastanesi Acil Tıp Kliniği eğitim aracı. Asistan eğitimi ve yatak başı karar desteği için hazırlanmıştır; Ulusal Zehir Danışma Merkezi: 114.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Sınırlar</h3>
+        <p class="small">Bu araç eğitim ve karar desteği amaçlıdır; puanlama uzlaşı tablolarından türetilmiş sezgisel ağırlıklardır, doğrulanmış bir klinik skor değildir. Karışık alımlar, kronik hastalıklar ve çocuk hastalarda bulgular klasik tablodan sapar. Tüm dozları kurum protokolü, ürün bilgisi ve Ulusal Zehir Danışma Merkezi (UZEM, 114) ile doğrulayın.</p>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <h4>Toksidrom sıralaması</h4>
+    <div class="rank" id="rank"></div>
+    <h4 style="margin-top:16px">Kritik uyarılar</h4>
+    <div id="alerts" class="ecg-flags"></div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* =====================================================================
+   KLİNİK VERİ MODELİ
+   Bulgular (FINDINGS), toksidromlar (TOXIDROMES) ve ağırlıklar.
+   Ağırlık: +4 kardinal, +3 güçlü, +2 destekleyici, +1 zayıf; negatif = aleyhine.
+   Kaynaklar: UpToDate (General approach to drug poisoning in adults; toxidrome
+   tabloları), Goldfrank's Toxicologic Emergencies 11e, Tintinalli 9e, Boyer &
+   Shannon NEJM 2005 (serotonin sendromu), Hunter kriterleri, ACMT/AACT bildirileri.
+   ===================================================================== */
+
+const REGIONS = {
+  front: {
+    img: "gorseller/vucut-on.jpg", w: 1045, h: 1400,
+    spots: [
+      { id:"eyes",   x:50, y:11.5, label:"Gözler / pupiller" },
+      { id:"mouth",  x:50, y:16.2, label:"Ağız / mukoza / koku" },
+      { id:"neck",   x:50, y:20.5, label:"Boyun" },
+      { id:"lungR",  x:41, y:30,   label:"Sağ akciğer" },
+      { id:"lungL",  x:59, y:30,   label:"Sol akciğer" },
+      { id:"heart",  x:53.5, y:34, label:"Kalp" },
+      { id:"skin",   x:35, y:44,   label:"Cilt (gövde)" },
+      { id:"abd",    x:50, y:42,   label:"Karın / bağırsak" },
+      { id:"bladder",x:50, y:49,   label:"Suprapubik / mesane" },
+      { id:"armR",   x:30, y:40,   label:"Sağ kol" },
+      { id:"armL",   x:70, y:40,   label:"Sol kol" },
+      { id:"handR",  x:28, y:55.5, label:"Sağ el" },
+      { id:"handL",  x:72, y:55.5, label:"Sol el" },
+      { id:"legR",   x:43.5, y:72, label:"Sağ bacak / diz" },
+      { id:"legL",   x:57,  y:72,  label:"Sol bacak / diz" },
+      { id:"footR",  x:41, y:93,   label:"Sağ ayak / bilek" },
+      { id:"footL",  x:60, y:93,   label:"Sol ayak / bilek" }
+    ]
+  },
+  back: {
+    img: "gorseller/vucut-arka.jpg", w: 1045, h: 1400,
+    spots: [
+      { id:"occiput", x:50, y:10,  label:"Oksiput / kafa travması" },
+      { id:"nape",    x:50, y:19,  label:"Ense / boyun" },
+      { id:"back",    x:50, y:33,  label:"Sırt / paravertebral" },
+      { id:"lumbar",  x:50, y:45,  label:"Bel / böbrek lojları" },
+      { id:"gluteal", x:50, y:56,  label:"Gluteal / bası" },
+      { id:"armRb",   x:70, y:40,  label:"Sağ kol (arka)" },
+      { id:"armLb",   x:30, y:40,  label:"Sol kol (arka)" },
+      { id:"hamR",    x:57, y:70,  label:"Sağ uyluk arkası" },
+      { id:"hamL",    x:43, y:70,  label:"Sol uyluk arkası" },
+      { id:"calfR",   x:58, y:84,  label:"Sağ baldır / aşil" },
+      { id:"calfL",   x:42, y:84,  label:"Sol baldır / aşil" }
+    ]
+  },
+  face: {
+    img: "gorseller/yuz.jpg", w: 746, h: 1000,
+    spots: [
+      { id:"eyeR",  x:35, y:32,  label:"Sağ göz" },
+      { id:"eyeL",  x:66, y:32,  label:"Sol göz" },
+      { id:"nose",  x:50, y:47,  label:"Burun" },
+      { id:"lips",  x:50, y:60,  label:"Dudaklar / ağız" },
+      { id:"cheek", x:22, y:50,  label:"Yüz cildi" },
+      { id:"jaw",   x:50, y:76,  label:"Çene / masseter" },
+      { id:"neckF", x:50, y:90,  label:"Boyun" }
+    ]
+  }
+};
+
+// Bölge -> hangi bulgu grupları listelenir
+const REGION_GROUPS = {
+  eyes:["pupil","eye"], eyeR:["pupil","eye"], eyeL:["pupil","eye"],
+  mouth:["mucosa","odor","airway"], lips:["mucosa","odor","airway"], nose:["nose"],
+  cheek:["skin","face"], skin:["skin"], jaw:["jaw"],
+  neck:["neck"], neckF:["neck"], nape:["neck","tone"],
+  lungR:["lung"], lungL:["lung"], heart:["cardiac"],
+  abd:["gi"], bladder:["gu"],
+  armR:["skin","motor","arm"], armL:["skin","motor","arm"], armRb:["skin","motor","arm"], armLb:["skin","motor","arm"],
+  handR:["hand","motor"], handL:["hand","motor"],
+  legR:["leg","motor","reflex"], legL:["leg","motor","reflex"],
+  footR:["foot","reflex"], footL:["foot","reflex"],
+  occiput:["head"], back:["tone","skin"], lumbar:["lumbar"], gluteal:["pressure","skin"],
+  hamR:["leg","motor"], hamL:["leg","motor"], calfR:["foot","reflex"], calfL:["foot","reflex"]
+};
+
+/* Bulgular. group: anatomik grup; cat: özet kategorisi; q: soru formu (ayrım motoru). */
+const FINDINGS = [
+  // --- vitallerden otomatik türetilenler (cat:"vital") ---
+  { id:"tachy",      cat:"vital", label:"Taşikardi", q:"Nabız >100/dk mı?" },
+  { id:"brady",      cat:"vital", label:"Bradikardi", q:"Nabız <60/dk mı?" },
+  { id:"htn",        cat:"vital", label:"Hipertansiyon", q:"Sistolik TA >140 mmHg mi?" },
+  { id:"hypot",      cat:"vital", label:"Hipotansiyon", q:"Sistolik TA <90 mmHg mi?" },
+  { id:"tachypnea",  cat:"vital", label:"Takipne / hiperpne", q:"Solunum sayısı >20/dk veya derin hiperpne var mı?" },
+  { id:"bradypnea",  cat:"vital", label:"Bradipne / hipoventilasyon", q:"Solunum sayısı <12/dk veya yüzeyel solunum var mı?" },
+  { id:"hyperth",    cat:"vital", label:"Hipertermi", q:"Vücut ısısı >38 °C mi?" },
+  { id:"hypoth",     cat:"vital", label:"Hipotermi", q:"Vücut ısısı <35 °C mi?" },
+  { id:"hypoxia",    cat:"vital", label:"Hipoksi (SpO₂ <94)", q:"SpO₂ <%94 mü?" },
+  { id:"hypogly",    cat:"vital", label:"Hipoglisemi", q:"Kan şekeri <70 mg/dL mi?" },
+  { id:"hypergly",   cat:"vital", label:"Hiperglisemi", q:"Kan şekeri >200 mg/dL mi?" },
+  { id:"hypercap",   cat:"vital", label:"Hiperkapni (EtCO₂ >50)", q:"EtCO₂ >50 mmHg mi?" },
+
+  // --- pupil / göz ---
+  { id:"miosis",     group:"pupil", cat:"pupil", label:"Miyozis (toplu iğne başı)", q:"Pupiller miyotik mi (≤2 mm)?" },
+  { id:"mydriasis",  group:"pupil", cat:"pupil", label:"Midriyazis", q:"Pupiller dilate mi (≥5 mm)?" },
+  { id:"nystagmus",  group:"eye",   cat:"pupil", label:"Nistagmus (horizontal)", q:"Horizontal nistagmus var mı?" },
+  { id:"nystagmusV", group:"eye",   cat:"pupil", label:"Vertikal / rotatuar nistagmus", q:"Vertikal veya rotatuar nistagmus var mı?" },
+  { id:"ocularclonus",group:"eye",  cat:"neuro", label:"Oküler klonus", q:"Oküler klonus (gözlerde ritmik salınım) var mı?" },
+  { id:"lacrim",     group:"eye",   cat:"secr",  label:"Lakrimasyon", q:"Belirgin lakrimasyon var mı?" },
+  { id:"visual",     group:"eye",   cat:"sx",    label:"Görme bozukluğu (bulanık, 'kar fırtınası')", q:"Bulanık görme / 'kar fırtınası' tarifliyor mu?" },
+  { id:"xanthopsia", group:"eye",   cat:"sx",    label:"Sarı-yeşil görme (ksantopsi)", q:"Sarı-yeşil haleler / renk görme bozukluğu var mı?" },
+  { id:"conjinj",    group:"eye",   cat:"eye",   label:"Konjonktival hiperemi", q:"Konjonktivalar hiperemik mi?" },
+  { id:"oculogyric", group:"eye",   cat:"neuro", label:"Okülojirik kriz", q:"Okülojirik kriz (gözlerin yukarı sabit deviasyonu) var mı?" },
+
+  // --- ağız / mukoza / koku / havayolu ---
+  { id:"drymucosa",  group:"mucosa", cat:"skin", label:"Kuru mukoza / kuru dil", q:"Ağız mukozası kuru mu?" },
+  { id:"saliv",      group:"mucosa", cat:"secr", label:"Hipersalivasyon", q:"Belirgin tükürük artışı var mı?" },
+  { id:"tonguebite", group:"mucosa", cat:"neuro",label:"Dil ısırığı", q:"Dilde ısırık izi var mı?" },
+  { id:"cyanlips",   group:"mucosa", cat:"skin", label:"Dudak / tırnak siyanozu", q:"Dudaklarda veya tırnak yataklarında siyanoz var mı?" },
+  { id:"trismus",    group:"jaw",    cat:"neuro",label:"Trismus / masseter spazmı", q:"Trismus veya masseter rijiditesi var mı?" },
+  { id:"odor_almond",group:"odor", cat:"odor", label:"Acı badem kokusu", q:"Nefeste acı badem kokusu var mı?" },
+  { id:"odor_garlic",group:"odor", cat:"odor", label:"Sarımsak kokusu", q:"Sarımsak kokusu var mı (organofosfat, arsenik, fosfor)?" },
+  { id:"odor_etoh",  group:"odor", cat:"odor", label:"Alkol kokusu", q:"Nefeste alkol kokusu var mı?" },
+  { id:"odor_acetone",group:"odor",cat:"odor", label:"Aseton / meyvemsi koku", q:"Aseton benzeri meyvemsi koku var mı?" },
+  { id:"odor_egg",   group:"odor", cat:"odor", label:"Çürük yumurta kokusu", q:"Çürük yumurta kokusu var mı (H₂S)?" },
+  { id:"odor_hc",    group:"odor", cat:"odor", label:"Hidrokarbon / nafta kokusu", q:"Petrol / nafta kokusu var mı?" },
+  { id:"rhinorrhea", group:"nose", cat:"secr", label:"Rinore", q:"Rinore var mı?" },
+  { id:"yawning",    group:"nose", cat:"sx",   label:"Esneme", q:"Sık esneme var mı?" },
+  { id:"septum",     group:"nose", cat:"skin", label:"Nazal septum hasarı / insüflasyon izi", q:"Nazal septum hasarı veya burun içinde toz kalıntısı var mı?" },
+
+  // --- boyun ---
+  { id:"torticollis",group:"neck", cat:"neuro", label:"Tortikolis / servikal distoni", q:"Tortikolis var mı?" },
+  { id:"neckrigid",  group:"neck", cat:"neuro", label:"Ense sertliği / opistotonus", q:"Ense sertliği veya opistotonus var mı?" },
+  { id:"jvd",        group:"neck", cat:"cardiac", label:"Juguler venöz dolgunluk", q:"Juguler venöz dolgunluk var mı?" },
+
+  // --- cilt ---
+  { id:"dryskin",    group:"skin", cat:"skin", label:"Kuru, sıcak cilt", q:"Cilt kuru ve sıcak mı?" },
+  { id:"diaph",      group:"skin", cat:"skin", label:"Terli (diyaforetik) cilt", q:"Cilt terli mi?" },
+  { id:"flushed",    group:"skin", cat:"skin", label:"Kızarık (flushing)", q:"Cilt kızarık mı?" },
+  { id:"pale",       group:"skin", cat:"skin", label:"Soluk / soğuk cilt", q:"Cilt soluk ve soğuk mu?" },
+  { id:"cyanosis",   group:"skin", cat:"skin", label:"Santral siyanoz", q:"Santral siyanoz var mı?" },
+  { id:"cherry",     group:"skin", cat:"skin", label:"Kiraz kırmızısı cilt", q:"Kiraz kırmızısı cilt rengi var mı (nadir, geç bulgu)?" },
+  { id:"jaundice",   group:"skin", cat:"skin", label:"Sarılık", q:"Sarılık var mı?" },
+  { id:"piloer",     group:"skin", cat:"skin", label:"Piloereksiyon", q:"Piloereksiyon (tüylerin dikenleşmesi) var mı?" },
+  { id:"bullae",     group:"skin", cat:"skin", label:"Bası bülleri (koma blisterleri)", q:"Bası noktalarında büller var mı?" },
+  { id:"tracks",     group:"skin", cat:"skin", label:"İğne izleri", q:"Enjeksiyon / iğne izleri var mı?" },
+  { id:"patch",      group:"skin", cat:"skin", label:"Transdermal bant (fentanil, klonidin, nikotin)", q:"Ciltte transdermal bant var mı?" },
+  { id:"ecchym",     group:"skin", cat:"skin", label:"Ekimoz / travma izi", q:"Ekimoz veya travma izi var mı?" },
+  { id:"urticaria",  group:"skin", cat:"skin", label:"Ürtiker / anjiyoödem", q:"Ürtiker veya anjiyoödem var mı?" },
+
+  // --- akciğer ---
+  { id:"bronchorr",  group:"lung", cat:"secr", label:"Bronkore / yaygın ral", q:"Bronkore (yoğun bronşiyal sekresyon) var mı?" },
+  { id:"wheeze",     group:"lung", cat:"resp", label:"Wheezing / bronkospazm", q:"Wheezing var mı?" },
+  { id:"pulmedema",  group:"lung", cat:"resp", label:"Pulmoner ödem bulguları", q:"Pulmoner ödem bulguları (bilateral ral, köpüklü balgam) var mı?" },
+  { id:"kussmaul",   group:"lung", cat:"resp", label:"Kussmaul solunumu", q:"Derin ve hızlı Kussmaul solunumu var mı?" },
+  { id:"shallow",    group:"lung", cat:"resp", label:"Yüzeyel / yetersiz solunum", q:"Solunum yüzeyel ve yetersiz mi?" },
+  { id:"stridor",    group:"airway", cat:"resp", label:"Stridor / üst havayolu ödemi", q:"Stridor var mı?" },
+
+  // --- kalp ---
+  { id:"irregular",  group:"cardiac", cat:"cardiac", label:"Düzensiz ritim", q:"Nabız düzensiz mi?" },
+  { id:"weakpulse",  group:"cardiac", cat:"cardiac", label:"Zayıf periferik nabız / hipoperfüzyon", q:"Periferik nabızlar zayıf, kapiller dolum uzamış mı?" },
+  { id:"chestpain",  group:"cardiac", cat:"sx", label:"Göğüs ağrısı", q:"Göğüs ağrısı var mı?" },
+
+  // --- karın ---
+  { id:"bs_down",    group:"gi", cat:"gi", label:"Bağırsak sesleri azalmış / yok", q:"Bağırsak sesleri azalmış veya yok mu?" },
+  { id:"bs_up",      group:"gi", cat:"gi", label:"Bağırsak sesleri artmış (hiperaktif)", q:"Bağırsak sesleri hiperaktif mi?" },
+  { id:"vomit",      group:"gi", cat:"gi", label:"Bulantı / kusma", q:"Bulantı-kusma var mı?" },
+  { id:"diarrhea",   group:"gi", cat:"gi", label:"İshal", q:"İshal var mı?" },
+  { id:"abdpain",    group:"gi", cat:"gi", label:"Karın ağrısı / kramp", q:"Karın ağrısı veya kramp var mı?" },
+  { id:"distension", group:"gi", cat:"gi", label:"Distansiyon / ileus", q:"Karın distansiyonu var mı?" },
+  { id:"hepatomeg",  group:"gi", cat:"gi", label:"Sağ üst kadran hassasiyeti", q:"Sağ üst kadran hassasiyeti var mı?" },
+
+  // --- genitoüriner ---
+  { id:"retention",  group:"gu", cat:"gu", label:"Üriner retansiyon / glob vezikal", q:"Üriner retansiyon (glob vezikal, USG'de dolu mesane) var mı?" },
+  { id:"incont",     group:"gu", cat:"gu", label:"İnkontinans", q:"İdrar/gaita inkontinansı var mı?" },
+  { id:"polyuria",   group:"gu", cat:"gu", label:"Poliüri", q:"Poliüri var mı?" },
+
+  // --- motor / nöromüsküler ---
+  { id:"tremor",     group:"hand", cat:"neuro", label:"Tremor", q:"Tremor var mı?" },
+  { id:"coarsetremor",group:"hand", cat:"neuro", label:"Kaba tremor", q:"Kaba (büyük amplitüdlü) tremor var mı?" },
+  { id:"fascic",     group:"motor", cat:"neuro", label:"Fasikülasyon", q:"Fasikülasyonlar var mı?" },
+  { id:"myoclonus",  group:"motor", cat:"neuro", label:"Miyoklonus", q:"Miyoklonus var mı?" },
+  { id:"clonus",     group:"reflex", cat:"neuro", label:"İndüklenebilir klonus (ayak bileği)", q:"Ayak bileğinde indüklenebilir klonus var mı?" },
+  { id:"sponclonus", group:"reflex", cat:"neuro", label:"Spontan klonus", q:"Spontan klonus var mı?" },
+  { id:"hyperreflex",group:"reflex", cat:"neuro", label:"Hiperrefleksi", q:"Derin tendon refleksleri artmış mı (özellikle alt ekstremite)?" },
+  { id:"hyporeflex", group:"reflex", cat:"neuro", label:"Hiporefleksi / arefleksi", q:"Derin tendon refleksleri azalmış mı?" },
+  { id:"leadpipe",   group:"tone",  cat:"neuro", label:"Kurşun boru rijiditesi (yaygın)", q:"Yaygın 'kurşun boru' rijiditesi var mı?" },
+  { id:"rigidLE",    group:"leg",   cat:"neuro", label:"Alt ekstremite ağırlıklı rijidite / hipertoni", q:"Hipertoni alt ekstremitelerde üst ekstremitelerden belirgin mi?" },
+  { id:"weakness",   group:"motor", cat:"neuro", label:"Kas güçsüzlüğü / paralizi", q:"Kas güçsüzlüğü var mı?" },
+  { id:"hypotonia",  group:"motor", cat:"neuro", label:"Hipotoni", q:"Hipotoni var mı?" },
+  { id:"asterixis",  group:"hand",  cat:"neuro", label:"Asteriksis", q:"Asteriksis var mı?" },
+  { id:"sweatypalm", group:"hand",  cat:"skin",  label:"Terli avuç içi", q:"Avuç içleri terli mi?" },
+  { id:"babinski",   group:"foot",  cat:"neuro", label:"Babinski pozitif", q:"Babinski pozitif mi?" },
+  { id:"ataxia",     group:"leg",   cat:"neuro", label:"Ataksi", q:"Ataksi var mı?" },
+  { id:"dystonia",   group:"motor", cat:"neuro", label:"Akut distoni", q:"Akut distoni (fokal kas spazmı) var mı?" },
+  { id:"bradykin",   group:"motor", cat:"neuro", label:"Bradikinezi / akinezi", q:"Bradikinezi var mı?" },
+  { id:"compart",    group:"leg",   cat:"neuro", label:"Kas hassasiyeti / şişlik (rabdomiyoliz)", q:"Kas hassasiyeti veya kompartman gerginliği var mı?" },
+  { id:"edema",      group:"leg",   cat:"cardiac", label:"Periferik ödem", q:"Periferik ödem var mı?" },
+
+  // --- arka / bası / böbrek ---
+  { id:"headtrauma", group:"head", cat:"other", label:"Kafa travması bulgusu", q:"Kafa travması bulgusu var mı?" },
+  { id:"pressure",   group:"pressure", cat:"skin", label:"Bası yarası / uzun süre hareketsiz kalma izi", q:"Bası yarası var mı?" },
+  { id:"cva",        group:"lumbar", cat:"other", label:"Kostovertebral açı hassasiyeti", q:"Kostovertebral açı hassasiyeti var mı?" },
+
+  // --- mental durum (anatomik olmayan) ---
+  { id:"agit",       cat:"mental", label:"Ajitasyon / huzursuzluk", q:"Ajitasyon var mı?" },
+  { id:"delirium",   cat:"mental", label:"Deliryum / konfüzyon", q:"Deliryum veya konfüzyon var mı?" },
+  { id:"halluc",     cat:"mental", label:"Hallüsinasyon (görsel, 'havada bir şey yakalama')", q:"Hallüsinasyon var mı?" },
+  { id:"psychosis",  cat:"mental", label:"Paranoya / psikoz", q:"Paranoid düşünce veya psikoz var mı?" },
+  { id:"sedation",   cat:"mental", label:"Sedasyon / uykuya meyil", q:"Sedasyon var mı?" },
+  { id:"coma",       cat:"mental", label:"Koma (GKS ≤8)", q:"Koma (GKS ≤8) var mı?" },
+  { id:"seizure",    cat:"mental", label:"Nöbet", q:"Nöbet geçirdi mi?" },
+  { id:"refractseiz",cat:"mental", label:"Benzodiazepine dirençli nöbet", q:"Nöbetler benzodiazepine dirençli mi?" },
+  { id:"mutism",     cat:"mental", label:"Mutizm / stupor / katatoni", q:"Mutizm, stupor veya katatoni var mı?" },
+  { id:"dissoc",     cat:"mental", label:"Dissosiyasyon / boş bakış", q:"Dissosiyatif durum (boş bakış, çevreyle ilgisizlik) var mı?" },
+  { id:"normalMS",   cat:"mental", label:"Mental durum normal", q:"Mental durum tamamen normal mi?" },
+  { id:"suddenwake", cat:"mental", label:"Komadan ani uyanma", q:"Derin komadan aniden uyanma oldu mu?" },
+  { id:"headache",   cat:"sx",     label:"Baş ağrısı", q:"Baş ağrısı var mı?" },
+  { id:"tinnitus",   cat:"sx",     label:"Tinnitus / işitme azlığı", q:"Tinnitus var mı?" },
+  { id:"dizziness",  cat:"sx",     label:"Baş dönmesi / senkop", q:"Baş dönmesi veya senkop var mı?" },
+  { id:"dysarthria", cat:"neuro",  label:"Dizartri", q:"Dizartri var mı?" },
+  { id:"anxiety",    cat:"mental", label:"Anksiyete / disfori", q:"Anksiyete-disfori var mı?" },
+
+  // --- EKG (EKG sekmesinden) ---
+  { id:"qrswide",    cat:"ecg", label:"QRS ≥100 ms", q:"QRS ≥100 ms mi?" },
+  { id:"qrsvwide",   cat:"ecg", label:"QRS ≥160 ms", q:"QRS ≥160 ms mi?" },
+  { id:"qtlong",     cat:"ecg", label:"QTc >500 ms", q:"QTc >500 ms mi?" },
+  { id:"avrR",       cat:"ecg", label:"aVR'de R ≥3 mm", q:"aVR'de terminal R dalgası ≥3 mm mi?" },
+  { id:"raxis",      cat:"ecg", label:"Terminal 40 ms sağ aks (aVR R, I/aVL S)", q:"Terminal QRS'de sağ aks deviasyonu var mı?" },
+  { id:"brugada",    cat:"ecg", label:"Brugada paterni", q:"V1-V3'te Brugada benzeri patern var mı?" },
+  { id:"avblock",    cat:"ecg", label:"AV blok", q:"AV blok var mı?" },
+  { id:"scoop",      cat:"ecg", label:"ST 'çukur' depresyonu (digoksin etkisi)", q:"ST segmentinde çukur (scooped) depresyon var mı?" },
+  { id:"bidirVT",    cat:"ecg", label:"Bidireksiyonel VT", q:"Bidireksiyonel ventriküler taşikardi var mı?" },
+  { id:"ectopy",     cat:"ecg", label:"Ventriküler ektopi / VT", q:"Sık ventriküler ektopi veya VT var mı?" },
+  { id:"atachblock", cat:"ecg", label:"Atriyal taşikardi + blok", q:"Bloklu atriyal taşikardi var mı?" },
+  { id:"peakedT",    cat:"ecg", label:"Sivri T (hiperkalemi)", q:"Sivri T dalgaları var mı?" },
+  { id:"uwave",      cat:"ecg", label:"U dalgası / düz T (hipokalemi)", q:"U dalgası veya düzleşmiş T var mı?" },
+  { id:"torsades",   cat:"ecg", label:"Torsades de pointes", q:"Torsades de pointes gelişti mi?" },
+  { id:"sinusbrady", cat:"ecg", label:"Sinüs bradikardisi / kavşak ritmi", q:"Sinüs bradikardisi veya kavşak ritmi var mı?" },
+  { id:"stelev",     cat:"ecg", label:"ST elevasyonu / iskemi", q:"ST elevasyonu veya iskemik değişiklik var mı?" },
+
+  // --- Laboratuvar (Lab sekmesinden) ---
+  { id:"agacid",     cat:"lab", label:"Artmış anyon açıklı metabolik asidoz", q:"Anyon açığı artmış metabolik asidoz var mı?" },
+  { id:"osmgap",     cat:"lab", label:"Ozmolar gap >10", q:"Ozmolar gap >10 mOsm/kg mı?" },
+  { id:"lactate",    cat:"lab", label:"Laktat belirgin yüksek (>8)", q:"Laktat >8 mmol/L mi?" },
+  { id:"respalk",    cat:"lab", label:"Respiratuvar alkaloz (+ metabolik asidoz)", q:"Kan gazında respiratuvar alkaloz + metabolik asidoz birlikteliği var mı?" },
+  { id:"hypoK",      cat:"lab", label:"Hipokalemi", q:"Potasyum <3.5 mmol/L mi?" },
+  { id:"hyperK",     cat:"lab", label:"Hiperkalemi", q:"Potasyum >5.5 mmol/L mi?" },
+  { id:"hypoCa",     cat:"lab", label:"Hipokalsemi", q:"Hipokalsemi var mı?" },
+  { id:"aki",        cat:"lab", label:"Akut böbrek hasarı", q:"Kreatinin yükselmiş mi?" },
+  { id:"ckhigh",     cat:"lab", label:"CK yüksek (rabdomiyoliz)", q:"CK belirgin yüksek mi?" },
+  { id:"leuko",      cat:"lab", label:"Lökositoz", q:"Lökositoz var mı?" },
+  { id:"oxalate",    cat:"lab", label:"İdrarda oksalat kristalleri", q:"İdrarda kalsiyum oksalat kristalleri var mı?" },
+  { id:"ketosis",    cat:"lab", label:"Ketonemi/ketonüri (asidoz olmadan)", q:"Asidoz olmaksızın ketoz var mı?" },
+  { id:"spo2gap",    cat:"lab", label:"SpO₂ ~85 sabit, O₂'ye yanıtsız / SaO₂ farkı", q:"SpO₂ ~%85'te sabit ve oksijene yanıtsız mı (SaO₂-SpO₂ farkı)?" },
+  { id:"chocblood",  cat:"lab", label:"Çikolata kahverengi kan", q:"Alınan kan çikolata kahverengi mi?" },
+  { id:"methb",      cat:"lab", label:"MetHb düzeyi yüksek", q:"Ko-oksimetride MetHb yüksek mi?" },
+  { id:"cohb",       cat:"lab", label:"COHb yüksek", q:"Ko-oksimetride COHb yüksek mi?" },
+  { id:"apaplevel",  cat:"lab", label:"Parasetamol düzeyi tedavi çizgisinin üzerinde", q:"Parasetamol düzeyi nomogramda çizginin üstünde mi?" },
+  { id:"salilevel",  cat:"lab", label:"Salisilat düzeyi yüksek", q:"Salisilat düzeyi yüksek mi?" },
+  { id:"digilevel",  cat:"lab", label:"Digoksin düzeyi yüksek", q:"Digoksin düzeyi yüksek mi?" },
+  { id:"lilevel",    cat:"lab", label:"Lityum düzeyi yüksek", q:"Lityum düzeyi yüksek mi?" },
+  { id:"etohlevel",  cat:"lab", label:"Etanol düzeyi yüksek", q:"Etanol düzeyi yüksek mi?" },
+  { id:"lfthigh",    cat:"lab", label:"Transaminaz yüksekliği", q:"AST/ALT yüksek mi?" },
+  { id:"venoushyperox", cat:"lab", label:"Venöz kan arteriyel kadar kırmızı (venöz hiperoksi)", q:"Venöz kan parlak kırmızı / venöz O₂ satürasyonu yüksek mi?" },
+  { id:"hypoNa",     cat:"lab", label:"Hiponatremi", q:"Hiponatremi var mı?" },
+
+  // --- öykü / maruziyet (Hasta sekmesi) ---
+  { id:"h_serot",    cat:"hx", label:"Serotonerjik ilaç öyküsü / doz artışı", q:"Son 24 saatte serotonerjik ilaç başlanmış, artırılmış veya aşırı alınmış mı (SSRI, SNRI, tramadol, MAOİ, linezolid, MDMA)?" },
+  { id:"h_dopant",   cat:"hx", label:"Antipsikotik / dopamin antagonisti öyküsü", q:"Antipsikotik veya antiemetik (metoklopramid) kullanımı / doz artışı ya da L-dopa kesilmesi var mı?" },
+  { id:"h_tca",      cat:"hx", label:"TSA / Na kanal blokeri alımı", q:"Trisiklik antidepresan veya Na kanal blokeri (karbamazepin, difenhidramin, kokain, propranolol, bupropion) alımı var mı?" },
+  { id:"h_bbccb",    cat:"hx", label:"Beta bloker / KKB alımı", q:"Beta bloker veya kalsiyum kanal blokeri alımı var mı?" },
+  { id:"h_digi",     cat:"hx", label:"Digoksin / kardiyak glikozit", q:"Digoksin kullanımı veya bitkisel glikozit (zakkum, yüksükotu) alımı var mı?" },
+  { id:"h_opioid",   cat:"hx", label:"Opioid alımı", q:"Opioid alımı öyküsü var mı?" },
+  { id:"h_opwd",     cat:"hx", label:"Opioid kesilmesi / nalokson sonrası", q:"Opioid bağımlısında kesilme veya nalokson uygulaması var mı?" },
+  { id:"h_etohwd",   cat:"hx", label:"Alkol / benzodiazepin kesilmesi", q:"Kronik alkol veya benzodiazepin kullanıcısında kesilme var mı?" },
+  { id:"h_sedative", cat:"hx", label:"Benzodiazepin / barbitürat / GHB alımı", q:"Benzodiazepin, barbitürat, zolpidem veya GHB alımı var mı?" },
+  { id:"h_symp",     cat:"hx", label:"Kokain / amfetamin / katinon alımı", q:"Kokain, amfetamin, MDMA veya sentetik katinon alımı var mı?" },
+  { id:"h_antichol", cat:"hx", label:"Antikolinerjik ajan alımı", q:"Antihistaminik, atropin, skopolamin, datura, TSA veya antipsikotik alımı var mı?" },
+  { id:"h_op",       cat:"hx", label:"Organofosfat / karbamat / mantar", q:"Pestisit (organofosfat, karbamat) veya muskarinik mantar maruziyeti var mı?" },
+  { id:"h_sali",     cat:"hx", label:"Salisilat alımı", q:"Aspirin / salisilat alımı (akut veya kronik) var mı?" },
+  { id:"h_apap",     cat:"hx", label:"Parasetamol alımı", q:"Parasetamol alımı var mı?" },
+  { id:"h_oxidant",  cat:"hx", label:"Oksidan ajan (dapson, benzokain, nitrit, anilin)", q:"Oksidan ajan maruziyeti var mı (dapson, benzokain, 'poppers', anilin boya)?" },
+  { id:"h_fire",     cat:"hx", label:"Yangın / duman / kapalı alan yanma", q:"Yangın, duman inhalasyonu veya kapalı alanda yanma kaynağı var mı?" },
+  { id:"h_cyanide",  cat:"hx", label:"Siyanür kaynağı (laboratuvar, kuyumcu, nitroprussid)", q:"Siyanür kaynağı maruziyeti var mı?" },
+  { id:"h_toxalc",   cat:"hx", label:"Metanol / etilen glikol (antifriz, sahte içki)", q:"Antifriz, sahte/kaçak içki, cam suyu alımı var mı?" },
+  { id:"h_isoprop",  cat:"hx", label:"İzopropanol (kolonya, el dezenfektanı)", q:"İzopropil alkol (kolonya, dezenfektan) alımı var mı?" },
+  { id:"h_su",       cat:"hx", label:"Sülfonilüre / insülin", q:"Sülfonilüre veya insülin maruziyeti var mı?" },
+  { id:"h_li",       cat:"hx", label:"Lityum kullanımı", q:"Lityum kullanıyor mu?" },
+  { id:"h_inh",      cat:"hx", label:"İzoniazid alımı", q:"İzoniazid alımı var mı?" },
+  { id:"h_anest",    cat:"hx", label:"Volatil anestezik / süksinilkolin", q:"Yakın zamanda volatil anestezik veya süksinilkolin maruziyeti var mı?" },
+  { id:"h_pcp",      cat:"hx", label:"Ketamin / PCP / dekstrometorfan", q:"Ketamin, fensiklidin veya dekstrometorfan alımı var mı?" },
+  { id:"h_clon",     cat:"hx", label:"Klonidin / imidazolin", q:"Klonidin veya imidazolin (göz/burun damlası) alımı var mı?" },
+  { id:"onset_fast", cat:"hx", label:"Hızlı başlangıç (<24 saat)", q:"Belirtiler 24 saat içinde hızla mı gelişti?" },
+  { id:"onset_slow", cat:"hx", label:"Yavaş başlangıç (günler)", q:"Belirtiler günler içinde yavaş mı gelişti?" },
+  { id:"h_iron",     cat:"hx", label:"Demir alımı", q:"Demir preparatı alımı var mı?" },
+  { id:"h_co",       cat:"hx", label:"Soba / şofben / jeneratör maruziyeti", q:"Soba, şofben, jeneratör veya egzoz maruziyeti var mı? Aynı ortamda başkalarında da semptom var mı?" }
+];
+
+const FINDING_BY_ID = Object.fromEntries(FINDINGS.map(f => [f.id, f]));
+
+/* Toksidromlar */
+const TOXIDROMES = [
+  {
+    id:"symp", name:"Sempatomimetik", short:"Sempato.", color:"#c0392b",
+    agents:"Kokain, amfetaminler, MDMA, sentetik katinonlar, efedrin, kafein/teofilin, albuterol",
+    classic:"Taşikardi, hipertansiyon, hipertermi, midriyazis, TERLİ cilt, ajitasyon, bağırsak sesleri normal/artmış",
+    w:{ tachy:3, htn:3, hyperth:2, tachypnea:1, mydriasis:3, diaph:3, sweatypalm:2, agit:3, psychosis:2, seizure:1, tremor:1, hyperreflex:1, bs_up:1, hypergly:1, chestpain:2, septum:2, h_symp:4,
+        dryskin:-3, drymucosa:-2, miosis:-3, brady:-3, sedation:-2, coma:-2, retention:-1, bs_down:-1, hypoth:-2 },
+    mgmt:"Benzodiazepin titrasyonu (ajitasyon, HT, taşikardi, hipertermi), agresif soğutma, sıvı; beta bloker TEK BAŞINA kullanma (kokain). Göğüs ağrısında ASA, nitrat, benzodiazepin."
+  },
+  {
+    id:"antichol", name:"Antikolinerjik", short:"Antikol.", color:"#d35400",
+    agents:"Antihistaminikler (difenhidramin), TSA, antipsikotikler, atropin/skopolamin, antispazmodikler, Datura, benztropin",
+    classic:"'Kör, kuru, kırmızı, sıcak, deli, tavşan gibi': midriyazis, KURU cilt ve mukoza, flushing, hipertermi, taşikardi, deliryum, üriner retansiyon, bağırsak sesleri azalmış",
+    w:{ tachy:3, hyperth:2, htn:1, mydriasis:3, dryskin:3, drymucosa:3, flushed:2, bs_down:2, retention:3, delirium:3, halluc:2, agit:2, mutism:1, seizure:1, myoclonus:1, qrswide:1, qtlong:1, h_antichol:4,
+        diaph:-3, sweatypalm:-2, miosis:-3, brady:-2, saliv:-3, bronchorr:-3, diarrhea:-2, incont:-1, lacrim:-2 },
+    mgmt:"Destek, benzodiazepin; saf antikolinerjik deliryumda fizostigmin (QRS geniş / TSA şüphesinde kontrendike). Hipertermide soğutma, retansiyonda sonda."
+  },
+  {
+    id:"cholin", name:"Kolinerjik", short:"Kolinerjik", color:"#16a085",
+    agents:"Organofosfatlar, karbamatlar, sinir ajanları, fizostigmin/neostigmin, muskarinik mantarlar (Clitocybe, Inocybe), nikotin",
+    classic:"SLUDGE/DUMBELS: salivasyon, lakrimasyon, idrar/gaita inkontinansı, kusma-ishal, bronkore-bronkospazm, bradikardi, MİYOZİS; nikotinik: fasikülasyon, güçsüzlük, taşikardi",
+    w:{ miosis:3, saliv:3, lacrim:2, bronchorr:4, wheeze:2, vomit:2, diarrhea:2, incont:2, diaph:2, fascic:4, weakness:3, brady:2, hypot:1, seizure:1, coma:1, sedation:1, pulmedema:2, odor_garlic:2, rhinorrhea:1, bs_up:2, abdpain:1, hypoxia:1, h_op:4,
+        dryskin:-3, drymucosa:-3, mydriasis:-2, bs_down:-2, retention:-3, delirium:-1 },
+    mgmt:"Dekontaminasyon + koruyucu ekipman. Atropin: sekresyon kuruyana kadar her 3-5 dk'da doz ikiye katlanır (pupil hedef değil). Pralidoksim (OP, erken). Nöbet: benzodiazepin. Süksinilkolinden kaçın."
+  },
+  {
+    id:"opioid", name:"Opioid", short:"Opioid", color:"#34495e",
+    agents:"Morfin, eroin, fentanil ve analogları, oksikodon, metadon, tramadol (nöbet), buprenorfin, loperamid (QT)",
+    classic:"Miyozis + solunum depresyonu + SSS depresyonu triadı; bradikardi, hipotansiyon, hipotermi, hiporefleksi, bağırsak sesleri azalmış",
+    w:{ miosis:4, bradypnea:4, shallow:3, hypoxia:2, sedation:3, coma:3, brady:1, hypot:1, hypoth:1, bs_down:2, hyporeflex:1, tracks:3, patch:2, pulmedema:1, hypercap:2, h_opioid:4,
+        mydriasis:-2, tachypnea:-2, agit:-2, diaph:-1, htn:-1, hyperreflex:-1, tachy:-1 },
+    mgmt:"Havayolu ve ventilasyon önce. Nalokson 0,04-0,4 mg IV titre (solunum hedefi, uyanıklık değil); yanıt varsa kesilme riski; uzun etkili ajanlarda infüzyon (etkili dozun 2/3'ü/saat) ve gözlem."
+  },
+  {
+    id:"sedhyp", name:"Sedatif-hipnotik", short:"Sedatif", color:"#7f8c8d",
+    agents:"Benzodiazepinler, barbitüratlar, Z-ilaçlar, GHB, etanol, propofol, baklofen",
+    classic:"SSS depresyonu, normal/hafif küçük pupiller, ataksi, nistagmus, dizartri; vitaller görece korunmuş (barbitürat/etanol/GHB'de hipoventilasyon, hipotermi)",
+    w:{ sedation:4, coma:3, ataxia:3, nystagmus:3, dysarthria:2, hyporeflex:1, hypotonia:1, bradypnea:2, brady:1, hypot:1, hypoth:2, bullae:2, suddenwake:2, odor_etoh:2, etohlevel:2, myoclonus:1, h_sedative:4,
+        agit:-2, seizure:-1, hyperth:-3, mydriasis:-1, tachy:-1, diaph:-1, hyperreflex:-2, clonus:-2 },
+    mgmt:"Destek tedavi, havayolu. Flumazenil yalnız izole, bağımlı olmayan benzodiazepin alımında (nöbet riski; TSA ko-ingestiyonunda kontrendike). GHB: kısa süreli koma, ani uyanma."
+  },
+  {
+    id:"serot", name:"Serotonin sendromu", short:"Serotonin", color:"#8e44ad",
+    agents:"SSRI/SNRI, MAOİ, tramadol, meperidin, linezolid, MDMA, lityum, triptanlar, dekstrometorfan, ondansetron, metilen mavisi; kombinasyonlar",
+    classic:"Hunter: serotonerjik ajan + (spontan klonus / indüklenebilir klonus + ajitasyon veya diyaforez / oküler klonus / tremor + hiperrefleksi / hipertoni + >38 °C + klonus). Hızlı başlangıç (<24 s), alt ekstremite > üst, hiperaktif bağırsak",
+    w:{ h_serot:4, onset_fast:2, clonus:4, sponclonus:4, ocularclonus:4, hyperreflex:3, tremor:2, rigidLE:2, agit:2, diaph:2, hyperth:2, tachy:2, htn:2, mydriasis:2, bs_up:2, diarrhea:1, myoclonus:1, delirium:1, seizure:1,
+        leadpipe:-1, hyporeflex:-3, bradykin:-2, dryskin:-2, onset_slow:-3, h_dopant:-1, brady:-1, mutism:-1 },
+    mgmt:"Serotonerjik ajanları kes, benzodiazepin, soğutma; orta-ağır olguda siproheptadin (12 mg PO yükleme, sonra 2 mg/2 saat). Ağır hipertermi (>41 °C): sedasyon, paralizi, entübasyon. Ajitasyon için fiziksel kısıtlama tek başına kullanılmaz."
+  },
+  {
+    id:"nms", name:"Nöroleptik malign sendrom", short:"NMS", color:"#2c3e50",
+    agents:"Haloperidol, atipik antipsikotikler, metoklopramid, proklorperazin; L-dopa/dopamin agonisti kesilmesi",
+    classic:"Dopamin antagonisti + günler içinde başlayan KURŞUN BORU rijidite, hipertermi, mental durum değişikliği (mutizm/stupor), otonomik instabilite, bradirefleksi, CK yüksek",
+    w:{ h_dopant:4, onset_slow:3, leadpipe:4, hyperth:3, mutism:3, delirium:2, tachy:2, htn:1, hypot:1, diaph:2, bradykin:2, ckhigh:3, leuko:1, hyporeflex:1, incont:1, tremor:1, saliv:1, aki:1, mydriasis:0,
+        clonus:-3, sponclonus:-3, ocularclonus:-3, hyperreflex:-3, onset_fast:-2, bs_up:-1, h_serot:-1 },
+    mgmt:"Ajanı kes, agresif soğutma, sıvı (rabdomiyoliz), benzodiazepin; ağır olguda dantrolen veya bromokriptin. Diyaliz gerekebilir. Antipsikotik yeniden başlanması ≥2 hafta ertelenir."
+  },
+  {
+    id:"mh", name:"Malign hipertermi", short:"MH", color:"#e74c3c",
+    agents:"Volatil anestezikler (sevofluran, desfluran, izofluran), süksinilkolin",
+    classic:"Anestezi sırasında/sonrasında açıklanamayan EtCO₂ artışı, taşikardi, masseter spazmı, yaygın rijidite, hızla yükselen ısı, hiperkalemi, asidoz",
+    w:{ h_anest:5, hypercap:4, trismus:3, leadpipe:3, hyperth:3, tachy:2, hyperK:2, ckhigh:2, agacid:2, ectopy:1, peakedT:1, diaph:1,
+        onset_slow:-3, clonus:-2, h_dopant:-1 },
+    mgmt:"Tetikleyiciyi durdur, %100 O₂ ve hiperventilasyon, dantrolen 2,5 mg/kg IV (10 mg/kg'a kadar tekrar), soğutma, hiperkalemi tedavisi, bikarbonat (asidoz), aritmi için KKB kullanma."
+  },
+  {
+    id:"sali", name:"Salisilat", short:"Salisilat", color:"#e67e22",
+    agents:"Aspirin, metil salisilat (keklik üzümü yağı, kremler), bizmut subsalisilat",
+    classic:"Takipne/hiperpne, tinnitus, kusma, terleme, hipertermi; respiratuvar alkaloz + anyon açıklı metabolik asidoz; konfüzyon/ajitasyon; nonkardiyojenik pulmoner ödem (ağır)",
+    w:{ h_sali:4, salilevel:5, tachypnea:4, kussmaul:2, tinnitus:4, vomit:2, diaph:2, hyperth:1, tachy:1, agit:1, delirium:2, agacid:3, respalk:4, pulmedema:2, hypoK:1, hypogly:1, coma:1, seizure:1, ckhigh:0,
+        bradypnea:-3, shallow:-3, miosis:-1, brady:-1 },
+    mgmt:"Kömür (erken, tekrarlayan doz düşünülebilir), idrar alkalinizasyonu (NaHCO₃ bolus + infüzyon, idrar pH 7,5-8), potasyum replasmanı, glukoz (nöroglikopeni). Hemodiyaliz: düzey >100 mg/dL (akut, normal böbrek) / >90 (böbrek bozukluğu) / >60 (kronik); salisilizme bağlı mental durum değişikliği, pH <7,2 (veya agresif tedaviye rağmen <7,3), serebral/pulmoner ödem, bikarbonat infüzyonunu engelleyen sıvı yükü, tedaviye rağmen kötüleşme. Entübasyon tehlikeli: hiperventilasyonu sürdür."
+  },
+  {
+    id:"nachan", name:"Na kanal blokajı (TSA tipi)", short:"Na kanal", color:"#9b59b6",
+    agents:"TSA (amitriptilin), karbamazepin, difenhidramin, kokain, propranolol, bupropion, kinidin, lamotrijin, lokal anestezikler, klorokin",
+    classic:"Geniş QRS (≥100 ms), aVR'de R ≥3 mm, terminal sağ aks, hipotansiyon, taşikardi, nöbet, koma; TSA'da antikolinerjik bulgular eşlik eder; Brugada paterni",
+    w:{ h_tca:4, qrswide:4, qrsvwide:4, avrR:4, raxis:3, brugada:3, ectopy:2, tachy:2, hypot:3, seizure:3, coma:2, sedation:1, qtlong:1, mydriasis:1, dryskin:1, retention:1, delirium:1, bs_down:1, stelev:0,
+        brady:-1, miosis:-2, diaph:-1 },
+    mgmt:"NaHCO₃ 1-2 mEq/kg IV bolus (QRS >100 ms, hipotansiyon, aritmi), hedef pH 7,50-7,55; hipertonik salin alternatif. Nöbet: benzodiazepin (fenitoin yok). Hipotansiyon: sıvı, norepinefrin. Dirençli: lidokain (IB), lipid emülsiyonu; IA/IC/III antiaritmikler ve fizostigmin kontrendike."
+  },
+  {
+    id:"bbccb", name:"Beta bloker / KKB", short:"BB-KKB", color:"#2980b9",
+    agents:"Metoprolol, propranolol (Na kanal, nöbet), sotalol (QT); verapamil, diltiazem, amlodipin (vazodilatasyon)",
+    classic:"Bradikardi, hipotansiyon, AV blok, şok. KKB: HİPERGLİSEMİ ve mental durum görece korunmuş; BB: hipoglisemi, bronkospazm; propranolol: geniş QRS, nöbet, koma",
+    w:{ h_bbccb:4, brady:4, sinusbrady:3, hypot:4, avblock:3, weakpulse:2, hypergly:2, hypogly:1, wheeze:1, normalMS:1, seizure:1, qrswide:1, qtlong:1, coma:1, pulmedema:1,
+        tachy:-3, htn:-3, mydriasis:-1, hyperth:-2, agit:-2, diaph:-1 },
+    mgmt:"Atropin (sıklıkla yetersiz), sıvı, kalsiyum, glukagon (BB), YÜKSEK DOZ İNSÜLİN-ÖGLİSEMİ (1 U/kg bolus + 1 U/kg/s, 10 U/kg/s'e titre; dekstroz + K takibi), vazopresör (norepinefrin/epinefrin), lipid emülsiyonu, pacing, ECMO (refrakter). Yavaş salımlı formda tüm bağırsak yıkama."
+  },
+  {
+    id:"digi", name:"Kardiyak glikozit (digoksin)", short:"Digoksin", color:"#27ae60",
+    agents:"Digoksin, yüksükotu, zakkum, inci çiçeği, kurbağa derisi (bufadienolid)",
+    classic:"Bulantı-kusma, konfüzyon, ksantopsi; bradiaritmi + artmış otomatisite (bloklu atriyal taşikardi, bidireksiyonel VT, sık PVC), AV blok, 'çukur' ST; akut alımda HİPERKALEMİ (prognostik)",
+    w:{ h_digi:4, digilevel:5, vomit:3, xanthopsia:4, visual:2, delirium:2, brady:3, avblock:3, bidirVT:5, atachblock:4, ectopy:3, scoop:2, hyperK:4, hypoK:1, irregular:2, abdpain:1, headache:1, sinusbrady:2,
+        tachy:-1, mydriasis:-1, hyperth:-2, diaph:-1 },
+    mgmt:"Digoksin-Fab: akut hayatı tehdit eden aritmi, K >5-5,5 mmol/L, hemodinamik bozukluk; ağır toksisite + miktar bilinmiyor: hemodinamik olarak görece stabilse 2 flakon, yanıt yetersizse 1-2 flakon tekrar; arrest yakın/arrestte 10 flakon; düzey biliniyorsa flakon = düzey (ng/mL) × kg / 100 (tam nötralizasyon; kısmi için yarısı). Atropin (bradikardi), Mg (ektopi). Kalsiyum verme (tartışmalı, kaçın), kardiyoversiyon düşük enerji/ son çare."
+  },
+  {
+    id:"methb", name:"Metemoglobinemi", short:"MetHb", color:"#5d4037",
+    agents:"Dapson, benzokain/lidokain spreyler, nitritler ('poppers'), anilin boyalar, fenazopiridin, nitrat kuyu suyu (bebek), rasburikaz",
+    classic:"O₂'ye yanıtsız siyanoz, SpO₂ ~%85'te takılı, çikolata kahverengi kan, normal PaO₂; >%20 dispne-baş ağrısı-taşikardi, >%50 koma/nöbet/asidoz",
+    w:{ h_oxidant:4, methb:5, cyanosis:4, cyanlips:3, spo2gap:5, chocblood:5, tachy:1, headache:2, hypoxia:2, tachypnea:1, delirium:1, seizure:1, coma:1, agacid:1,
+        miosis:-1, brady:-1, hyperth:-1, bs_down:-1 },
+    mgmt:"O₂, oksidan ajanı kes. Metilen mavisi 1-2 mg/kg IV (5 dk'da), 30-60 dk'da tekrar (MetHb >%30 veya daha düşük düzeyde hipoksi semptomu varsa; %20-30 + semptom); G6PD eksikliğinde etkisiz/hemoliz; serotonerjik ilaçlarla serotonin sendromu riski; dapsonda rebound (simetidin). Refrakter: kan değişimi, HBO."
+  },
+  {
+    id:"asphyx", name:"Hücresel asfiksan (siyanür / CO / H₂S)", short:"CN-CO-H₂S", color:"#c0392b",
+    agents:"Siyanür (yangın dumanı, nitroprussid, kuyumcu, kayısı çekirdeği), karbonmonoksit (soba, şofben, jeneratör), hidrojen sülfür (kanalizasyon, gübre çukuru)",
+    classic:"Hipoksi olmadan laktik asidoz (laktat >8-10), koma/nöbet, hipotansiyon, kardiyovasküler kollaps; CO: baş ağrısı, bulantı, ev halkında benzer semptom, SpO₂ yanıltıcı; CN: acı badem, venöz hiperoksi",
+    w:{ h_fire:4, h_cyanide:4, h_co:4, cohb:5, lactate:4, agacid:3, coma:3, seizure:2, hypot:3, weakpulse:2, headache:3, vomit:2, odor_almond:3, odor_egg:3, venoushyperox:3, cherry:2, tachypnea:1, bradypnea:1, brady:1, tachy:1, delirium:2, stelev:2, chestpain:1, dizziness:1,
+        miosis:-1, mydriasis:0, dryskin:-1, retention:-1 },
+    mgmt:"%100 O₂ (CO: NRM/entübasyon, HBO: COHb >%25, gebelik >%15, bilinç kaybı, pH <7,25, uç organ iskemisi — EKG/troponin, solunum yetmezliği, fokal nörolojik bulgu, bilinç değişikliği). Siyanür: hidroksokobalamin 5 g IV (15 dk), gerekirse tekrar ± sodyum tiyosülfat 12,5 g; yangın kurbanlarında nitrit verme. H₂S: O₂, nitrit düşünülebilir."
+  },
+  {
+    id:"toxalc", name:"Toksik alkol (metanol / etilen glikol)", short:"Toksik alkol", color:"#1abc9c",
+    agents:"Metanol (sahte içki, cam suyu, kolonya katkı), etilen glikol (antifriz), dietilen glikol",
+    classic:"Erken: sarhoşluk, kusma, karın ağrısı, ozmolar gap; geç (6-24 s): artmış AG asidoz, Kussmaul; metanol: görme kaybı, 'kar fırtınası', pupil yanıtsızlığı; EG: hipokalsemi, oksalat kristali, böbrek yetmezliği, kraniyal nöropati",
+    w:{ h_toxalc:4, osmgap:4, agacid:4, kussmaul:3, visual:4, mydriasis:1, vomit:2, abdpain:2, delirium:2, coma:2, seizure:1, oxalate:4, hypoCa:3, aki:3, tachypnea:2, odor_etoh:1, ataxia:1, lactate:1, dysarthria:1,
+        ketosis:-2, miosis:-1, bs_up:-1, onset_slow:0 },
+    mgmt:"Fomepizol 15 mg/kg IV yükleme, 10 mg/kg/12 s ×4, sonra 15 mg/kg/12 s (diyalizde her 4 s) — etanol alternatif. Bikarbonat (pH <7,3). Metanol: folinik asit/folat; EG: tiamin + piridoksin. Hemodiyaliz: pH <7,25-7,3, görme bulgusu, böbrek yetmezliği, yüksek düzey (>50 mg/dL) veya kötüleşen vitaller."
+  },
+  {
+    id:"isoprop", name:"İzopropanol", short:"İzopropanol", color:"#16a085",
+    agents:"İzopropil alkol (kolonya, el dezenfektanı, cam temizleyici)",
+    classic:"Belirgin sarhoşluk/koma, aseton kokusu, ketozis VAR, asidoz YOK (ozmolar gap + ketoz, normal AG), hemorajik gastrit, hipotansiyon (ağır)",
+    w:{ h_isoprop:4, osmgap:3, ketosis:4, odor_acetone:3, sedation:3, coma:2, ataxia:2, vomit:2, abdpain:1, hypot:1, hypoth:1, dysarthria:1,
+        agacid:-3, visual:-2, oxalate:-3, kussmaul:-2 },
+    mgmt:"Destek tedavi; fomepizol gerekmez (asetona dönüşür, asidoz yapmaz). Ağır hipotansiyon/komada hemodiyaliz nadiren."
+  },
+  {
+    id:"hypogl", name:"Hipoglisemik ajan", short:"Hipoglisemi", color:"#f39c12",
+    agents:"Sülfonilüreler (glibenklamid, glimepirid), insülin, meglitinidler; etanol (çocuk), beta bloker, salisilat (nöroglikopeni)",
+    classic:"Hipoglisemi + terleme, taşikardi, tremor; konfüzyon, fokal nörolojik defisit, nöbet, koma. Sülfonilürede uzun süreli ve tekrarlayan",
+    w:{ h_su:4, hypogly:5, diaph:3, tachy:2, tremor:2, delirium:3, coma:3, seizure:2, agit:1, anxiety:1, pale:2, sweatypalm:2,
+        hypergly:-5, dryskin:-2, miosis:-1 },
+    mgmt:"Dekstroz (D50 25-50 g IV veya D10), yemek; sülfonilürede oktreotid 50-100 µg SC/IV 6-8 saatte bir (rebound önler), 24 saat gözlem. Profilaktik dekstroz infüzyonu sülfonilürede insülin salınımını tetikler, hedefe titre."
+  },
+  {
+    id:"etohwd", name:"Alkol / sedatif yoksunluğu", short:"EtOH-yoksunluk", color:"#d35400",
+    agents:"Kronik etanol, benzodiazepin, barbitürat, GHB, baklofen kesilmesi",
+    classic:"Tremor, terleme, taşikardi, hipertansiyon, anksiyete, insomni; 12-48 s nöbet; 48-96 s deliryum tremens (hipertermi, hallüsinasyon, ajitasyon); hiperaktif bağırsak",
+    w:{ h_etohwd:5, tremor:4, coarsetremor:2, diaph:3, tachy:3, htn:3, hyperth:2, agit:3, halluc:3, delirium:3, anxiety:2, seizure:2, mydriasis:1, vomit:1, bs_up:1, hyperreflex:1, hypoK:1,
+        sedation:-3, coma:-3, brady:-2, miosis:-2, bradypnea:-3 },
+    mgmt:"Benzodiazepin semptom tetikli (diazepam 10-20 mg IV / lorazepam 2-4 mg) — yüksek doz gerekebilir; dirençli: fenobarbital, propofol/entübasyon. Tiamin 100-500 mg, Mg, K, glukoz. Antipsikotik tek başına verilmez."
+  },
+  {
+    id:"opwd", name:"Opioid yoksunluğu", short:"Opioid-yoksun.", color:"#7f8c8d",
+    agents:"Opioid bağımlısında kesilme, nalokson/naltrekson/buprenorfin ile presipite yoksunluk",
+    classic:"Midriyazis, piloereksiyon, esneme, lakrimasyon, rinore, kusma-ishal, karın krampları, miyalji, anksiyete; mental durum NORMAL, vitaller hafif yüksek; hayatı tehdit etmez (gebe hariç)",
+    w:{ h_opwd:5, mydriasis:3, piloer:4, yawning:4, lacrim:3, rhinorrhea:3, vomit:2, diarrhea:3, abdpain:2, bs_up:2, tachy:1, htn:1, anxiety:3, agit:1, normalMS:2, diaph:1,
+        sedation:-3, coma:-4, miosis:-4, bradypnea:-4, seizure:-2, hyperth:-1, delirium:-2 },
+    mgmt:"Semptomatik: klonidin, ondansetron, loperamid; buprenorfin veya metadon ile tedavi (presipite yoksunlukta dikkat). Nalokson sonrası yoksunlukta destek, sedasyon."
+  },
+  {
+    id:"li", name:"Lityum toksisitesi", short:"Lityum", color:"#8e44ad",
+    agents:"Lityum (akut, akut-kronik, kronik); dehidratasyon, NSAİİ, ACEİ, tiyazid etkileşimi",
+    classic:"Kaba tremor, hiperrefleksi, klonus, ataksi, dizartri, konfüzyon; bulantı-kusma-ishal (akut); nefrojenik Dİ; EKG: bradikardi, T düzleşmesi, QT uzaması",
+    w:{ h_li:4, lilevel:5, coarsetremor:4, tremor:2, hyperreflex:3, clonus:2, ataxia:3, dysarthria:2, delirium:3, myoclonus:2, vomit:2, diarrhea:2, polyuria:2, brady:1, qtlong:1, seizure:1, aki:1, sinusbrady:1, coma:1, hypoNa:1,
+        miosis:-1, bradypnea:-1, dryskin:-1 },
+    mgmt:"Kömür ETKİSİZ (tüm bağırsak yıkama: yavaş salımlı). İzotonik salin ile volüm; nefrotoksik ilaçları kes. Hemodiyaliz: düzey >4 mmol/L + böbrek bozukluğu, >5 mmol/L, nöbet/bilinç bozukluğu/hayatı tehdit eden aritmi; rebound için düzey tekrarı."
+  },
+  {
+    id:"dyst", name:"Akut distonik reaksiyon", short:"Distoni", color:"#2c3e50",
+    agents:"Haloperidol, metoklopramid, proklorperazin, risperidon, kokain ile birlikte",
+    classic:"Fokal istemsiz kas spazmı: tortikolis, okülojirik kriz, trismus, laringeal distoni; mental durum ve vitaller normal; günler içinde (sıklıkla ilk 48 s)",
+    w:{ h_dopant:4, dystonia:5, torticollis:4, oculogyric:4, trismus:3, normalMS:3, anxiety:1, stridor:1,
+        hyperth:-3, leadpipe:-2, coma:-3, seizure:-2, tachy:-1 },
+    mgmt:"Biperiden 5 mg IV/IM veya difenhidramin 25-50 mg IV (benztropin 1-2 mg IV/IM); laringeal distoni havayolu acili. 2-3 gün oral antikolinerjik ile idame."
+  },
+  {
+    id:"dissoc", name:"Dissosiyatif (ketamin / PCP)", short:"Dissosiyatif", color:"#3498db",
+    agents:"Ketamin, fensiklidin, dekstrometorfan, metoksetamin",
+    classic:"Nistagmus (vertikal/rotatuar), taşikardi, hipertansiyon, ajitasyon veya boş bakış/katatoni, midriyazis, hipersalivasyon, analjezi, rijidite",
+    w:{ h_pcp:4, nystagmusV:4, nystagmus:2, dissoc:4, agit:2, tachy:2, htn:2, mydriasis:1, saliv:2, hyperth:1, leadpipe:1, mutism:1, halluc:2, psychosis:2, diaph:1,
+        miosis:-2, bradypnea:-2, coma:-1 },
+    mgmt:"Sakin ortam, benzodiazepin; hipertermi soğutma; rabdomiyoliz izlemi. Kısıtlamadan kaçın."
+  },
+  {
+    id:"inh", name:"İzoniazid", short:"İzoniazid", color:"#e74c3c",
+    agents:"İzoniazid; benzer: hidrazin, Gyromitra mantarı",
+    classic:"Alımdan 30 dk-2 s sonra benzodiazepine dirençli tekrarlayan nöbetler, laktik asidoz, koma",
+    w:{ h_inh:5, refractseiz:5, seizure:3, lactate:3, agacid:3, coma:2, delirium:1, vomit:1, tachy:1,
+        miosis:-1, brady:-1 },
+    mgmt:"Piridoksin IV: alınan INH ile gram-gram (bilinmeyen: 5 g), tekrar edilebilir; benzodiazepin eş zamanlı. Dirençli: propofol, barbitürat; hemodiyaliz."
+  },
+  {
+    id:"clon", name:"Klonidin / imidazolin", short:"Klonidin", color:"#34495e",
+    agents:"Klonidin, deksmedetomidin, tizanidin, tetrahidrozolin/oksimetazolin damlaları, guanfasin",
+    classic:"Opioid benzeri: miyozis, SSS depresyonu, bradikardi, hipotansiyon, hipoventilasyon; erken geçici hipertansiyon; uyarıyla uyanma; nalokson değişken yanıt",
+    w:{ h_clon:5, miosis:3, sedation:3, coma:2, brady:3, hypot:3, bradypnea:2, htn:1, hypoth:1, sinusbrady:2, avblock:1, suddenwake:1,
+        mydriasis:-2, tachy:-2, agit:-1, hyperth:-2, diaph:-1 },
+    mgmt:"Destek, atropin (bradikardi), sıvı/vazopresör; nalokson denenebilir (değişken); 24 saat izlem (çocuk)."
+  }
+];
+
+/* Önerilen ikili ayrımlar — sekmede referans tablo olarak gösterilir */
+const DISCRIMINATORS = [
+  { pair:"Sempatomimetik vs Antikolinerjik", key:"Cilt ve bağırsak: sempatomimetikte TERLİ cilt, bağırsak sesleri normal/artmış; antikolinerjikte KURU cilt-mukoza, hipoaktif bağırsak, üriner retansiyon, 'picking' hallüsinasyon." },
+  { pair:"Serotonin sendromu vs NMS", key:"Serotonin: serotonerjik ajan, <24 saatte hızlı başlangıç, KLONUS/hiperrefleksi, alt ekstremite > üst, ishal/hiperaktif bağırsak. NMS: dopamin antagonisti, günler içinde, kurşun boru rijidite, bradirefleksi, mutizm, CK çok yüksek." },
+  { pair:"Serotonin/NMS vs Antikolinerjik hipertermi", key:"Antikolinerjikte cilt KURU, refleksler ve tonus normal, bağırsak hipoaktif; serotonin/NMS'de terli cilt ve nöromüsküler anormallik (klonus veya rijidite)." },
+  { pair:"Malign hipertermi", key:"Anestezik/süksinilkolin tetikleyicisi, dakikalar içinde EtCO₂ artışı ve rijidite; dantrolen yanıtı." },
+  { pair:"Opioid vs Sedatif-hipnotik vs Klonidin", key:"Opioid: toplu iğne pupil + bradipne; nalokson yanıtı. Sedatif-hipnotik: pupil normal/orta, solunum görece korunmuş (barbitürat hariç), ataksi/nistagmus. Klonidin: opioid gibi ama bradikardi-hipotansiyon ön planda, uyarıyla uyanır." },
+  { pair:"Opioid vs Kolinerjik (miyozis + koma)", key:"Kolinerjikte sekresyonlar artmış (bronkore, salivasyon, lakrimasyon), ishal/inkontinans, fasikülasyon; opioidde sekresyon yok, bağırsak sessiz." },
+  { pair:"Bradikardi + hipotansiyon", key:"BB: hipoglisemi, bronkospazm, (propranolol) geniş QRS/nöbet. KKB: hiperglisemi, mental durum korunmuş. Digoksin: GİS, ksantopsi, hiperkalemi, bloklu atriyal taşikardi/bidireksiyonel VT. Kolinerjik: SLUDGE. Klonidin: miyozis + SSS depresyonu." },
+  { pair:"Geniş QRS taşikardi", key:"Na kanal blokajı: aVR R ≥3 mm, terminal sağ aks, bikarbonat yanıtı. Hiperkalemi: sivri T, PR uzaması. Digoksin: genelde bradiaritmi." },
+  { pair:"Artmış AG metabolik asidoz", key:"GOLD MARK: Glikoller, Oksoprolin, L-laktat, D-laktat, Metanol, Aspirin, Renal yetmezlik, Ketoasidoz. Laktat çok yüksek + hipoksi yok → siyanür/CO/H₂S, metformin, INH. Ozmolar gap + AG → toksik alkol." },
+  { pair:"Siyanoz, O₂'ye yanıtsız", key:"MetHb: SpO₂ ~%85 sabit, PaO₂ normal, çikolata kan. Sülfhemoglobinemi benzer, metilen mavisine yanıtsız. Siyanürde siyanoz nadir (venöz hiperoksi)." },
+  { pair:"Nöbet + asidoz", key:"INH (benzodiazepine dirençli), teofilin, bupropion, TSA (geniş QRS), tramadol, salisilat (geç), hipoglisemi, siyanür/CO, yoksunluk." }
+];
+
+/* Antidot / tedavi tablosu — erişkin dozları; kg girildiyse hesaplanır */
+const ANTIDOTES = [
+  { id:"nalox", name:"Nalokson", tox:"Opioid", dose:"0,04-0,4 mg IV (apne yoksa düşük başla), 2-3 dk'da bir titre; 2 mg → toplam 10 mg'a kadar. IM/IN 0,4-2 mg. İnfüzyon: etkili dozun 2/3'ü / saat.", note:"Hedef yeterli ventilasyon (uyanıklık değil). Uzun etkili opioid/metadonda ≥6-24 s gözlem." },
+  { id:"atro", name:"Atropin", tox:"Kolinerjik (OP/karbamat)", dose:"1-3 mg IV (ağırsa 3-5 mg); her 3-5 dk'da doz ikiye katlanır, bronşiyal sekresyonlar kuruyana kadar. Sonra toplam yükleme dozunun %10-20'si/saat infüzyon.", note:"Pupil ve kalp hızı hedef değil. Bronkore çözülene kadar." , perkg:null },
+  { id:"pam", name:"Pralidoksim (2-PAM)", tox:"Organofosfat", dose:"30 mg/kg IV (1-2 g) 15-30 dk'da, sonra 8-10 mg/kg/s (≈500 mg/s) infüzyon.", perkg:{load:30,unit:"mg",rate:8,rateUnit:"mg/s"}, note:"Atropin verildikten sonra, 'yaşlanma' öncesi erken. Karbamatta tartışmalı ama zararı az." },
+  { id:"phys", name:"Fizostigmin", tox:"Antikolinerjik deliryum", dose:"0,5-2 mg IV yavaş (≥5 dk), 10-15 dk'da tekrar edilebilir; etkisi 30-60 dk.", note:"KONTRENDİKE: QRS >100 ms / TSA şüphesi, bradikardi, bronkospazm. Atropin hazır olsun." },
+  { id:"fluma", name:"Flumazenil", tox:"Benzodiazepin (izole)", dose:"0,2 mg IV 30 sn'de, 1 dk arayla 0,2-0,5 mg; maks 1-3 mg.", note:"Kronik benzodiazepin kullanıcısı, nöbet öyküsü, TSA/prokonvülzan ko-ingestiyonda kontrendike. Rutin kullanılmaz." },
+  { id:"bicarb", name:"Sodyum bikarbonat", tox:"Na kanal blokajı (TSA), salisilat", dose:"TSA: 1-2 mEq/kg IV bolus (50-100 mEq), QRS daralana / pH 7,50-7,55 olana kadar tekrar; sonra 150 mEq/1 L D5W infüzyon. Salisilat: 1-2 mEq/kg bolus, sonra 150 mEq/1 L D5W (K ekle) idame ×2-3, hedef idrar pH 7,5-8.", perkg:{load:1,unit:"mEq",max:100,range:"1-2"}, note:"Potasyum ve pH takibi (serum pH <7,55-7,6)." },
+  { id:"lipid", name:"Lipid emülsiyonu %20", tox:"Lokal anestezik, lipofilik ilaç (BB, KKB, TSA, bupropion) — refrakter", dose:"1,5 mL/kg IV bolus (1 dk), gerekirse 1-2 kez tekrar; sonra 0,25 mL/kg/dk 30-60 dk. Toplam ≤10-12 mL/kg.", perkg:{load:1.5,unit:"mL",rate:0.25,rateUnit:"mL/dk"}, note:"Lab interferansı, pankreatit, ECMO devresi tıkanması. Hemodinamik kollapsta." },
+  { id:"gluca", name:"Glukagon", tox:"Beta bloker", dose:"3-10 mg IV bolus (1-2 dk), yanıt varsa 3-5 mg/s infüzyon.", note:"Kusma (havayolu), hiperglisemi; etkisi sıklıkla geçici — yüksek doz insüline köprü." },
+  { id:"hie", name:"Yüksek doz insülin (HIE)", tox:"KKB, beta bloker", dose:"Regüler insülin 1 U/kg IV bolus, sonra 1 U/kg/s; 15-30 dk'da bir 1-2 U/kg/s artır, 10 U/kg/s'e kadar. Dekstroz 0,5 g/kg bolus (glukoz <250 ise) + 0,5 g/kg/s infüzyon. Glukoz her 15-30 dk, K her saat.", perkg:{load:1,unit:"U",rate:1,rateUnit:"U/s"}, note:"Etki 15-60 dk'da başlar; erken başla. Hipoglisemi ve hipokalemi izle." },
+  { id:"ca", name:"Kalsiyum", tox:"KKB (ve hipokalsemi, hiperkalemi)", dose:"Kalsiyum klorür %10 10-20 mL (1-2 g) santral yoldan veya kalsiyum glukonat %10 30-60 mL (3-6 g) IV 5-10 dk; 10-20 dk arayla 3-4 kez; infüzyon 0,2-0,4 mL/kg/s CaCl.", note:"İyonize Ca hedef normalin 2 katına kadar. Digoksinde kaçın." },
+  { id:"fab", name:"Digoksin immün Fab", tox:"Kardiyak glikozit", dose:"Ağır toksisite, miktar bilinmiyor: görece stabil hasta 2 flakon, yanıt yetersizse 1-2 flakon tekrar; arrest yakın/arrest: 10 flakon (erişkin). Hesap: flakon = (serum digoksin ng/mL × kg) / 100; alınan mg bilinirse flakon = mg × 0,8 / 0,5 (biyoyararlanım %80).", note:"Endikasyon: hayatı tehdit eden aritmi, K >5-5,5 mmol/L (akut), hemodinamik instabilite, son organ hasarı. Sonrası serum digoksin ölçümü güvenilmez (total)." },
+  { id:"hydroxo", name:"Hidroksokobalamin", tox:"Siyanür", dose:"5 g IV 15 dk'da (70 mg/kg çocuk); gerekirse ikinci 5 g 15 dk-2 saatte. ± Sodyum tiyosülfat %25 50 mL (12,5 g) IV 10-30 dk.", perkg:{load:70,unit:"mg",max:5000}, note:"Kırmızı idrar/cilt, lab interferansı (ko-oksimetri, kreatinin). Yangın kurbanlarında nitrit YOK (MetHb + COHb)." },
+  { id:"mb", name:"Metilen mavisi", tox:"Metemoglobinemi", dose:"1-2 mg/kg IV (%1 solüsyon 0,1-0,2 mL/kg) 5 dk'da; 30-60 dk'da yanıt yoksa 1 mg/kg tekrar. Toplam ≤7 mg/kg.", perkg:{load:1,unit:"mg",range:"1-2"}, note:"Endikasyon: MetHb >%30 (veya daha düşükken hipoksi semptomu); %20-30 ve semptomatik; anemi/kalp-akciğer hastalığında daha düşük eşik. G6PD eksikliği (hemoliz), serotonerjik ilaçlar (serotonin sendromu), dapsonda uzun yarı ömür." },
+  { id:"fome", name:"Fomepizol", tox:"Metanol, etilen glikol", dose:"15 mg/kg IV yükleme (30 dk), 10 mg/kg/12 s ×4 doz, sonra 15 mg/kg/12 s (enzim indüksiyonu). Hemodiyalizde her 4 saatte bir.", perkg:{load:15,unit:"mg",rate:10,rateUnit:"mg/12 s"}, note:"Etanol alternatif (hedef 100-150 mg/dL). Metanol: folinik asit 50 mg IV/4-6 s; EG: tiamin 100 mg + piridoksin 50 mg." },
+  { id:"nac", name:"N-asetilsistein (IV 21 saat)", tox:"Parasetamol", dose:"150 mg/kg (200 mL D5W) 60 dk'da → 50 mg/kg (500 mL) 4 saatte → 100 mg/kg (1000 mL) 16 saatte. Oral: 140 mg/kg yükleme, 70 mg/kg/4 s ×17.", perkg:{load:150,unit:"mg",rate:null}, note:"Endikasyon: nomogramda çizgi üstü, zamanı bilinmeyen alım + ölçülebilir düzey veya yüksek ALT, alımdan >8 saat sonra başvuruda düzey beklemeden başla. 16-saatlik üçüncü torba hepatotoksisite/yüksek düzeyde uzatılır." },
+  { id:"cypro", name:"Siproheptadin", tox:"Serotonin sendromu", dose:"12 mg PO/NG yükleme, sonra 2 mg her 2 saatte semptom sürdükçe; idame 8 mg/6 s. Günlük maks 32 mg.", note:"Yalnız oral; antikolinerjik etki (sedasyon). Ağır olguda sedasyon-entübasyon öncelikli." },
+  { id:"dant", name:"Dantrolen", tox:"Malign hipertermi (NMS'de ikinci basamak)", dose:"MH: 2,5 mg/kg IV hızlı, belirtiler sürerse 5-10 dk'da tekrar, 10 mg/kg'a (bazen daha fazla) kadar; sonra 1 mg/kg/4-6 s 24-48 s. NMS: 1-2,5 mg/kg IV, 1 mg/kg/6 s (maks 10 mg/kg/gün).", perkg:{load:2.5,unit:"mg"}, note:"Hepatotoksisite, KKB ile birlikte verilmez (hiperkalemi). NMS'de kanıt zayıf." },
+  { id:"bromo", name:"Bromokriptin", tox:"NMS", dose:"2,5 mg PO/NG 6-8 saatte bir, 45 mg/gün'e kadar titre; 10 gün sürdür, yavaş azalt.", note:"Hipotansiyon, kusma; psikoz alevlenebilir." },
+  { id:"octre", name:"Oktreotid", tox:"Sülfonilüre hipoglisemisi", dose:"50-100 µg SC/IV 6-8 saatte bir (çocuk 1-1,5 µg/kg); 24 saat.", note:"Dekstroz ile birlikte; kesildikten sonra 12-24 s hipoglisemi izlemi." },
+  { id:"dex", name:"Dekstroz", tox:"Hipoglisemi", dose:"D50 50 mL (25 g) IV veya D10 250 mL IV; çocuk D10 2-5 mL/kg. Sonra D10 infüzyon.", note:"Kronik alkolde tiamin ile birlikte (önce/eş zamanlı)." },
+  { id:"pyri", name:"Piridoksin (B6)", tox:"İzoniazid, hidrazin, Gyromitra", dose:"Alınan INH ile gram-gram IV (maks hız 0,5-1 g/dk); bilinmeyen: 5 g IV (çocuk 70 mg/kg). Nöbet sürerse tekrar.", perkg:{load:70,unit:"mg",max:5000}, note:"Benzodiazepinle sinerjik. Aşırı dozda periferik nöropati." },
+  { id:"benzo", name:"Benzodiazepin", tox:"Sempatomimetik, yoksunluk, nöbet, serotonin/NMS, antikolinerjik ajitasyon", dose:"Lorazepam 2-4 mg IV / diazepam 5-10 mg IV, 5-10 dk arayla titre (yoksunlukta 10-20 mg diazepam); midazolam 5-10 mg IM (damar yolu yoksa).", note:"Tavan doz yok; solunum izlemi. Kokainde kardiyovasküler bulguların birinci basamağı." },
+  { id:"mg", name:"Magnezyum sülfat", tox:"Torsades / QT uzaması, digoksin ektopisi", dose:"2 g IV 2-5 dk'da (ağırsa 1-2 dk), 5-15 dk'da tekrar; sonra 1-4 g/s infüzyon. Hedef K >4, Mg >2.", note:"Torsades refrakterse overdrive pacing (90-110/dk) veya izoproterenol." },
+  { id:"lido", name:"Lidokain", tox:"TSA/Na kanal blokajı aritmisi (bikarbonata dirençli)", dose:"1-1,5 mg/kg IV bolus, sonra 1-4 mg/dk infüzyon.", perkg:{load:1,unit:"mg",range:"1-1,5"}, note:"Sınıf IA (prokainamid), IC (flekainid) ve III (amiodaron) kontrendike." },
+  { id:"charcoal", name:"Aktif kömür", tox:"Çoğu oral alım (ilk 1-2 s)", dose:"1 g/kg (erişkin 50 g) PO/NG. Çoklu doz (0,5 g/kg/4 s): karbamazepin, dapson, fenobarbital, kinin, teofilin.", perkg:{load:1,unit:"g",max:50}, note:"Havayolu korunmuyorsa verme. Bağlamaz: alkoller, demir, lityum, hidrokarbon, kostik." },
+  { id:"wbi", name:"Tüm bağırsak yıkama (PEG)", tox:"Yavaş salımlı ilaç, demir, lityum, vücut paketçileri", dose:"PEG-ELS 1,5-2 L/s NG (çocuk 25 mL/kg/s) rektal akıntı berraklaşana kadar.", note:"İleus, perforasyon, havayolu korunmuyorsa kontrendike." },
+  { id:"desfer", name:"Deferoksamin", tox:"Demir", dose:"15 mg/kg/s IV infüzyon (hipotansiyonda yavaş başla), 24 saati geçmeden yeniden değerlendir; idrar 'vin rosé' rengi kaybolana kadar.", perkg:{rate:15,rateUnit:"mg/s"}, note:"Endikasyon: demir >500 µg/dL, asidoz, şok, bilinç bozukluğu. ARDS (uzun infüzyon), Yersinia." },
+  { id:"carn", name:"L-karnitin", tox:"Valproat (hiperamonyemi, hepatotoksisite)", dose:"100 mg/kg IV yükleme (maks 6 g), sonra 15 mg/kg/4 s.", perkg:{load:100,unit:"mg",max:6000}, note:"Ağır olguda hemodiyaliz." },
+  { id:"thia", name:"Tiamin", tox:"Alkol, etilen glikol, Wernicke", dose:"100-500 mg IV; Wernicke şüphesi 500 mg IV 3×/gün.", note:"Glukozdan önce/eş zamanlı." },
+  { id:"biper", name:"Biperiden / difenhidramin", tox:"Akut distoni", dose:"Biperiden 5 mg IV/IM (tekrar 30 dk); difenhidramin 25-50 mg IV/IM; benztropin 1-2 mg IV/IM. 48-72 s oral idame.", note:"Laringeal distonide havayolu hazırlığı." },
+  { id:"hbo", name:"Hiperbarik oksijen", tox:"Karbonmonoksit", dose:"2,5-3 ATA, 90-120 dk, ilk 6-12 saat içinde.", note:"Endikasyon: COHb >%25 (gebe >%15), bilinç kaybı, ağır metabolik asidoz (pH <7,25), uç organ iskemisi (EKG değişikliği, troponin, solunum yetmezliği, fokal nörolojik defisit, bilinç değişikliği). Tartışmalı; merkez protokolü." }
+];
+
+/* Referans: toksidrom hızlı tablosu (sekmede gösterilir) */
+const TOX_TABLE = [
+  ["Toksidrom","Nabız","TA","Solunum","Isı","Pupil","Cilt","Bağırsak","Mental","Ayırıcı"],
+  ["Sempatomimetik","↑","↑","↑","↑","Midriyazis","Terli","Normal/↑","Ajite","Terleme, piloereksiyon, nöbet, MI"],
+  ["Antikolinerjik","↑","↑/−","−","↑","Midriyazis","Kuru, kızarık","↓","Deliryum, mırıldanma","Retansiyon, kuru mukoza, 'picking'"],
+  ["Kolinerjik","↓ (nik: ↑)","↓/−","↑ (bronkore)","−","Miyozis","Terli","↑","Konfüzyon/koma","SLUDGE, fasikülasyon, güçsüzlük"],
+  ["Opioid","↓","↓","↓↓","↓","Miyozis","Normal/soğuk","↓","Depresyon","Nalokson yanıtı, iğne izi"],
+  ["Sedatif-hipnotik","−/↓","−/↓","−/↓","−/↓","−/↓","Normal","−","Depresyon","Ataksi, nistagmus, dizartri"],
+  ["Serotonin","↑","↑","↑","↑","Midriyazis","Terli","↑ (ishal)","Ajite/konfüze","KLONUS, hiperrefleksi, tremor, <24 s"],
+  ["NMS","↑","↑/labil","↑","↑↑","−","Terli, soluk","−/↓","Stupor/mutizm","Kurşun boru rijidite, bradirefleksi, CK↑, günler"],
+  ["Salisilat","↑","−","↑↑","↑","−","Terli","−","Konfüze/ajite","Tinnitus, resp. alkaloz + AG asidoz, pulmoner ödem"],
+  ["Na kanal (TSA)","↑","↓","−/↓","↑/−","Midriyazis","Kuru","↓","Koma, nöbet","QRS ≥100, aVR R, Brugada, bikarbonat yanıtı"],
+  ["BB / KKB","↓","↓","−","−","−","Soğuk/soluk","−","KKB: normal; BB: depresyon","BB hipoglisemi; KKB hiperglisemi"],
+  ["Digoksin","↓ / ektopi","↓","−","−","−","−","↑ (bulantı)","Konfüze","Ksantopsi, hiperkalemi, bidireksiyonel VT"],
+  ["MetHb","↑","−","↑","−","−","Siyanotik (O₂ yanıtsız)","−","Baş ağrısı → koma","SpO₂ ~85, çikolata kan, normal PaO₂"],
+  ["Siyanür / CO","↑ → ↓","↓","↑ → ↓","−","−","Normal/kırmızı","−","Koma, nöbet","Laktat >8-10, hipoksi yok, duman öyküsü"],
+  ["Toksik alkol","↑","−","↑ (Kussmaul)","−","Metanol: dilate, yanıtsız","−","↑ (kusma)","Sarhoş → koma","Ozmolar gap → AG asidoz, görme, oksalat, hipoCa"],
+  ["Alkol yoksunluğu","↑","↑","↑","↑","Midriyazis","Terli","↑","Tremor, hallüsinasyon, DT","48-96 s, nöbet 12-48 s"],
+  ["Opioid yoksunluğu","↑","↑","−","−","Midriyazis","Piloereksiyon","↑↑ (ishal)","Anksiyöz, uyanık","Esneme, lakrimasyon, rinore; hayatı tehdit etmez"]
+];
+
+/* =====================================================================
+   UYGULAMA MANTIĞI
+   ===================================================================== */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const VIEWS = [
+  { id:"patient", label:"Hasta & öykü",   icon:"M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8a7 7 0 0 1 14 0" },
+  { id:"vitals",  label:"Vitaller",       icon:"M3 12h4l2-5 3 10 3-7 2 2h4" },
+  { id:"exam",    label:"Fizik muayene",  icon:"M12 3v4m0 10v4M5 12h4m6 0h4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" },
+  { id:"ecg",     label:"EKG",            icon:"M2 12h3l2-7 3 14 3-10 2 5 2-2h5" },
+  { id:"lab",     label:"Lab & hesap",    icon:"M9 3v7L4 19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2l-5-9V3M8 3h8" },
+  { id:"qa",      label:"Rehberli ayrım", icon:"M9 9a3 3 0 1 1 4 2.8c-.7.4-1 1-1 1.7V15m0 3h0M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z" },
+  { id:"result",  label:"Değerlendirme",  icon:"M4 20h16M6 16l4-6 4 4 5-8" },
+  { id:"anti",    label:"Antidotlar",     icon:"M12 2l3 3-9 9-3-3zM13 11l5 5-3 3-5-5M5 19l3-3" },
+  { id:"ai",      label:"AI danışman",    icon:"M12 3a7 7 0 0 1 7 7c0 2.5-1.3 4-2.5 5.3V18H7.5v-2.7C6.3 14 5 12.5 5 10a7 7 0 0 1 7-7zM9 21h6" },
+  { id:"refs",    label:"Kaynaklar",      icon:"M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM8 7h8M8 11h8M8 15h5" }
+];
+
+/* ---------- durum ---------- */
+const blank = () => ({
+  id: null, created: null,
+  patient: { name:"", age:"", sex:"", wt:"", agent:"", time:"", route:"", intent:"", meds:"", hx:"" },
+  vitals: { hr:"", sbp:"", dbp:"", rr:"", temp:"", spo2:"", glu:"", etco2:"", gcsE:"", gcsV:"", gcsM:"" },
+  ecg: { hr:"", rhythm:"", pr:"", qrs:"", qt:"", avr:"", avrrs:"", axis:"", k:"" },
+  lab: { na:"", cl:"", hco3:"", alb:"", ph:"", pco2:"", lac:"", k:"", ca:"", osm:"", glu:"", bun:"", etoh:"", apap:"", apapt:"", sali:"", digi:"", li:"", methb:"", cohb:"", ck:"", cr:"", alt:"", wbc:"", flevel:"", fmg:"" },
+  findings: {},     // id -> 1 (var) | -1 (yok)
+  skipped: [],      // ayrım motorunda atlanan soru id'leri
+  view: "patient", bodyView: "front", region: null
+});
+let S = blank();
+let auto = {}; // vital/EKG/lab'dan türetilen otomatik bulgular id->1
+
+const store = {
+  get(k, d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- yardımcı ---------- */
+const num = v => (v===""||v==null||isNaN(+v)) ? null : +v;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200); }
+function setFinding(id, val){ if(val===0||val==null) delete S.findings[id]; else S.findings[id]=val; S.skipped=S.skipped.filter(x=>x!==id); refresh(); }
+function getFinding(id){ return S.findings[id] ?? (auto[id] ? 1 : 0); }
+function effectiveFindings(){ const f={...Object.fromEntries(Object.keys(auto).map(k=>[k,1])), ...S.findings}; return f; }
+
+/* ---------- puanlama ---------- */
+function score(){
+  const f = effectiveFindings();
+  return TOXIDROMES.map(t => {
+    let s=0, plus=[], minus=[], max=0;
+    for (const [id,w] of Object.entries(t.w)){
+      if (w>0) max += w;
+      const v = f[id]; if (!v) continue;
+      const contrib = v>0 ? w : (w>0 ? -Math.min(w,2) : 0); // bulgunun yokluğu: pozitif ağırlıklı bulgu için küçük ceza
+      if (!contrib) continue;
+      s += contrib;
+      const lbl = FINDING_BY_ID[id]?.label || id;
+      (contrib>0 ? plus : minus).push({lbl, w:contrib, present:v>0});
+    }
+    const pct = max ? Math.max(0, Math.min(100, Math.round(100*s/max))) : 0;
+    return { t, s, max, pct, plus:plus.sort((a,b)=>b.w-a.w), minus:minus.sort((a,b)=>a.w-b.w) };
+  }).sort((a,b)=>b.s-a.s);
+}
+
+/* ---------- otomatik bulgular ---------- */
+const VITAL_DEF = [
+  { id:"hr",   label:"Nabız", unit:"/dk", eval:v=> v>130?["crit","Belirgin taşikardi"]: v>100?["warn","Taşikardi"]: v<40?["crit","Ağır bradikardi"]: v<60?["warn","Bradikardi"]:["ok","Normal"] },
+  { id:"sbp",  label:"Sistolik TA", unit:"mmHg", eval:v=> v<80?["crit","Şok"]: v<90?["warn","Hipotansiyon"]: v>180?["crit","Ağır hipertansiyon"]: v>140?["warn","Hipertansiyon"]:["ok","Normal"] },
+  { id:"dbp",  label:"Diyastolik TA", unit:"mmHg", eval:v=> v>110?["warn","Yüksek"]:["ok",""] },
+  { id:"rr",   label:"Solunum", unit:"/dk", eval:v=> v<8?["crit","Apne eşiği"]: v<12?["warn","Bradipne"]: v>30?["crit","Belirgin takipne"]: v>20?["warn","Takipne"]:["ok","Normal"] },
+  { id:"temp", label:"Isı", unit:"°C", eval:v=> v>40?["crit","Ağır hipertermi"]: v>38?["warn","Hipertermi"]: v<32?["crit","Ağır hipotermi"]: v<35?["warn","Hipotermi"]:["ok","Normal"] },
+  { id:"spo2", label:"SpO₂", unit:"%", eval:v=> v<88?["crit","Ağır hipoksi"]: v<94?["warn","Hipoksi"]:["ok","Normal"] },
+  { id:"glu",  label:"Glukoz", unit:"mg/dL", eval:v=> v<50?["crit","Ağır hipoglisemi"]: v<70?["warn","Hipoglisemi"]: v>300?["crit","Belirgin hiperglisemi"]: v>200?["warn","Hiperglisemi"]:["ok","Normal"] },
+  { id:"etco2",label:"EtCO₂", unit:"mmHg", eval:v=> v>60?["crit","Ağır hiperkapni"]: v>50?["warn","Hiperkapni"]: v<30?["warn","Hipokapni"]:["ok","Normal"] }
+];
+function deriveAuto(){
+  auto = {};
+  const v = S.vitals, n = num;
+  if (n(v.hr)!=null){ if (v.hr>100) auto.tachy=1; if (v.hr<60) auto.brady=1; }
+  if (n(v.sbp)!=null){ if (v.sbp>140) auto.htn=1; if (v.sbp<90) auto.hypot=1; }
+  if (n(v.rr)!=null){ if (v.rr>20) auto.tachypnea=1; if (v.rr<12) auto.bradypnea=1; }
+  if (n(v.temp)!=null){ if (v.temp>38) auto.hyperth=1; if (v.temp<35) auto.hypoth=1; }
+  if (n(v.spo2)!=null && v.spo2<94) auto.hypoxia=1;
+  if (n(v.glu)!=null){ if (v.glu<70) auto.hypogly=1; if (v.glu>200) auto.hypergly=1; }
+  if (n(v.etco2)!=null && v.etco2>50) auto.hypercap=1;
+  const g = gcs(); if (g!=null && g<=8) auto.coma=1;
+  // EKG
+  const e = S.ecg;
+  if (n(e.hr)!=null){ if (e.hr>100) auto.tachy=1; if (e.hr<60) auto.brady=1; }
+  if (n(e.qrs)!=null){ if (e.qrs>=100) auto.qrswide=1; if (e.qrs>=160) auto.qrsvwide=1; }
+  const q = qtc(); if (q && q.fridericia>500) auto.qtlong=1;
+  if (n(e.avr)!=null && e.avr>=3) auto.avrR=1;
+  if (n(e.avrrs)!=null && e.avrrs>0.7) auto.avrR=1;
+  if (e.axis==="right") auto.raxis=1;
+  if (e.rhythm==="Bidireksiyonel VT") auto.bidirVT=1;
+  if (e.rhythm==="Atriyal taşikardi + blok") auto.atachblock=1;
+  if (e.rhythm==="Tam AV blok") auto.avblock=1;
+  if (e.rhythm==="Torsades"){ auto.torsades=1; auto.qtlong=1; }
+  if (e.rhythm==="VT"||e.rhythm==="Geniş kompleks taşikardi") auto.ectopy=1;
+  if (e.rhythm==="Sinüs bradikardisi"||e.rhythm==="Kavşak ritmi") auto.sinusbrady=1;
+  if (e.rhythm==="Atriyal fibrilasyon") auto.irregular=1;
+  const kk = n(e.k) ?? n(S.lab.k);
+  if (kk!=null){ if (kk<3.5) auto.hypoK=1; if (kk>5.5) auto.hyperK=1; }
+  // Lab
+  const L = S.lab, ag = anionGap();
+  if (ag && ag.ag>12 && n(L.hco3)!=null && L.hco3<22) auto.agacid=1;
+  const og = osmGap(); if (og && og.gap>10) auto.osmgap=1;
+  if (n(L.lac)!=null && L.lac>8) auto.lactate=1;
+  if (n(L.ph)!=null && n(L.pco2)!=null && n(L.hco3)!=null && L.hco3<22 && L.pco2<35 && L.ph>=7.38) auto.respalk=1;
+  if (n(L.ca)!=null && L.ca<1.1) auto.hypoCa=1;
+  if (n(L.cr)!=null && L.cr>1.3) auto.aki=1;
+  if (n(L.ck)!=null && L.ck>1000) auto.ckhigh=1;
+  if (n(L.wbc)!=null && L.wbc>11) auto.leuko=1;
+  if (n(L.methb)!=null && L.methb>3) auto.methb=1;
+  if (n(L.cohb)!=null && L.cohb>5) auto.cohb=1;
+  if (n(L.sali)!=null && L.sali>30) auto.salilevel=1;
+  if (n(L.digi)!=null && L.digi>2) auto.digilevel=1;
+  if (n(L.li)!=null && L.li>1.5) auto.lilevel=1;
+  if (n(L.etoh)!=null && L.etoh>80) auto.etohlevel=1;
+  if (n(L.alt)!=null && L.alt>100) auto.lfthigh=1;
+  if (n(L.na)!=null && L.na<135) auto.hypoNa=1;
+  const rm = rumack(); if (rm && rm.above) auto.apaplevel=1;
+  if (n(L.glu)!=null && n(S.vitals.glu)==null){ if (L.glu<70) auto.hypogly=1; if (L.glu>200) auto.hypergly=1; }
+}
+function gcs(){ const {gcsE,gcsV,gcsM}=S.vitals; if(gcsE===""||gcsV===""||gcsM==="") return null; return +gcsE + +gcsV + +gcsM; }
+
+/* ---------- hesaplar ---------- */
+function qtc(){
+  const qt=num(S.ecg.qt), hr=num(S.ecg.hr) ?? num(S.vitals.hr);
+  if (qt==null||hr==null||hr<=0) return null;
+  const rr = 60/hr;
+  return { rr, bazett: qt/Math.sqrt(rr), fridericia: qt/Math.cbrt(rr), framingham: qt+154*(1-rr), hodges: qt+1.75*(hr-60) };
+}
+function anionGap(){
+  const na=num(S.lab.na), cl=num(S.lab.cl), h=num(S.lab.hco3); if(na==null||cl==null||h==null) return null;
+  const ag = na-cl-h, alb=num(S.lab.alb);
+  const agc = alb!=null ? ag + 2.5*(4-alb) : null;
+  const delta = (ag-12)/(24-h);
+  const winter = 1.5*h+8;
+  return { ag, agc, delta, winter };
+}
+function osmGap(){
+  const osm=num(S.lab.osm), na=num(S.lab.na), glu=num(S.lab.glu), bun=num(S.lab.bun), et=num(S.lab.etoh)||0;
+  if (osm==null||na==null||glu==null||bun==null) return null;
+  const calc = 2*na + glu/18 + bun/2.8 + et/4.6;
+  return { calc, gap: osm-calc };
+}
+function rumack(){
+  const c=num(S.lab.apap), t=num(S.lab.apapt); if(c==null||t==null) return null;
+  if (t<4||t>24) return { c, t, valid:false };
+  const line = 150*Math.pow(2,-(t-4)/4), high = 300*Math.pow(2,-(t-4)/4);
+  return { c, t, valid:true, line, high, above: c>=line, veryhigh: c>=high };
+}
+
+/* ---------- render: ray ---------- */
+function renderRail(){
+  const counts = { exam: Object.keys(S.findings).filter(id=>FINDING_BY_ID[id]?.group).length, qa: S.skipped.length?0:0 };
+  $("#rail").innerHTML = VIEWS.map((v,i)=>`${i===6?'<div class="sep"></div>':''}<button type="button" data-view="${v.id}" class="${S.view===v.id?'active':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${v.icon}"/></svg>${v.label}${counts[v.id]?`<span class="cnt">${counts[v.id]}</span>`:''}</button>`).join("");
+}
+function showView(id){ S.view=id; $$(".view").forEach(v=>v.classList.toggle("active", v.dataset.view===id)); renderRail(); $("#main").scrollTop=0; if(id==="qa") renderQA(); if(id==="result") renderResult(); if(id==="ai") renderSummary(); }
+
+/* ---------- render: etiket grupları ---------- */
+function tagHTML(id){
+  const f=FINDING_BY_ID[id]; const v=S.findings[id]; const a=auto[id];
+  const cls = v>0?"on":v<0?"on neg":a?"on":"";
+  return `<span class="tag ${cls}" data-f="${id}" title="${esc(f.q||'')}">${esc(f.label)}${a&&!v?'<span class="k">oto</span>':''}${v<0?'<span class="k">yok</span>':''}</span>`;
+}
+function renderTags(sel, ids){ $(sel).innerHTML = ids.map(tagHTML).join(""); }
+function cycleTag(id){ const v=S.findings[id]||0; setFinding(id, v===0?1 : v===1?-1 : 0); }
+
+/* ---------- render: vitaller ---------- */
+function renderVitals(){
+  const wrap=$("#vitals");
+  if (!wrap.children.length){
+    wrap.innerHTML = VITAL_DEF.map(d=>`<div class="vital" data-v="${d.id}"><label for="v_${d.id}">${d.label}</label><div class="row"><input id="v_${d.id}" type="number" inputmode="decimal" step="any"><span class="unit">${d.unit}</span></div><div class="st"></div></div>`).join("");
+  }
+  VITAL_DEF.forEach(d=>{
+    const el=wrap.querySelector(`[data-v="${d.id}"]`), v=num(S.vitals[d.id]);
+    const inp=el.querySelector("input"); if (document.activeElement!==inp) inp.value=S.vitals[d.id];
+    el.classList.remove("ok","warn","crit"); const st=el.querySelector(".st");
+    if (v==null){ st.textContent=""; return; }
+    const [c,t]=d.eval(v); el.classList.add(c); st.textContent=t;
+  });
+  ["gcsE","gcsV","gcsM"].forEach(k=>{ $("#v_"+k).value=S.vitals[k]; });
+  const g=gcs(); const items=[];
+  if (g!=null) items.push(`<span class="pill ${g<=8?'crit':g<=12?'warn':'ok'}">GKS ${g}</span>`);
+  if (num(S.vitals.sbp)!=null && num(S.vitals.hr)!=null) items.push(`<span class="pill neutral">Şok indeksi ${(S.vitals.hr/S.vitals.sbp).toFixed(2)}</span>`);
+  Object.keys(auto).filter(id=>FINDING_BY_ID[id]?.cat==="vital"||id==="coma").forEach(id=>items.push(`<span class="pill info">${esc(FINDING_BY_ID[id].label)}</span>`));
+  $("#vitalSummary").innerHTML = items.join("") || '<span class="small muted">Değer girildikçe türetilen bulgular burada listelenir.</span>';
+  renderTags("#mentalTags", FINDINGS.filter(f=>f.cat==="mental"||(f.cat==="sx")||f.id==="dysarthria").map(f=>f.id));
+}
+
+/* ---------- render: vücut haritası ---------- */
+function renderFigure(){
+  const R = REGIONS[S.bodyView];
+  const fig=$("#figure");
+  const countFor = sp => (REGION_GROUPS[sp.id]||[]).reduce((n,g)=>n+FINDINGS.filter(f=>f.group===g && S.findings[f.id]>0).length,0);
+  fig.innerHTML = `<img src="${R.img}" alt="Muayene figürü — ${S.bodyView==='front'?'ön':S.bodyView==='back'?'arka':'yüz'} görünüm" draggable="false">` +
+    R.spots.map(sp=>{ const c=countFor(sp); return `<button type="button" class="hs ${c?'marked':''} ${S.region===sp.id?'sel':''}" style="left:${sp.x}%;top:${sp.y}%" data-r="${sp.id}" title="${esc(sp.label)}" aria-label="${esc(sp.label)}"><span class="n">${c}</span></button>`; }).join("");
+  $$("#viewSwitch button").forEach(b=>b.classList.toggle("active", b.dataset.v===S.bodyView));
+  renderRegionPanel();
+  const marked = FINDINGS.filter(f=>f.group && S.findings[f.id]);
+  $("#markedSummary").innerHTML = marked.length ? marked.map(f=>`<span class="tag ${S.findings[f.id]>0?'on':'on neg'}" data-f="${f.id}">${esc(f.label)}${S.findings[f.id]<0?'<span class="k">yok</span>':''}</span>`).join("") : '<span class="small muted">Henüz bulgu işaretlenmedi.</span>';
+}
+function renderRegionPanel(){
+  const p=$("#regionPanel");
+  if (!S.region){ p.innerHTML=`<h3><span class="dot"></span> Bölge seçin</h3><p class="small muted">Figürdeki bir noktaya tıklayın. Numaralar o bölgedeki pozitif bulgu sayısıdır.</p>`; return; }
+  const allSpots=[...REGIONS.front.spots,...REGIONS.back.spots,...REGIONS.face.spots];
+  const sp=allSpots.find(s=>s.id===S.region); const groups=REGION_GROUPS[S.region]||[];
+  const list=FINDINGS.filter(f=>groups.includes(f.group));
+  p.innerHTML = `<h3><span class="dot"></span> ${esc(sp.label)}</h3><div class="finding-list">` + list.map(f=>{
+    const v=S.findings[f.id]||0;
+    return `<div class="finding ${v>0?'on':v<0?'neg':''}"><div><div class="t">${esc(f.label)}</div><div class="s">${esc(f.q||'')}</div></div><div class="tri"><button type="button" class="y ${v>0?'on':''}" data-set="${f.id}:1">Var</button><button type="button" class="n ${v<0?'on':''}" data-set="${f.id}:-1">Yok</button><button type="button" data-set="${f.id}:0">—</button></div></div>`;
+  }).join("") + `</div>`;
+}
+
+/* ---------- render: EKG ---------- */
+function renderECG(){
+  Object.keys(S.ecg).forEach(k=>{ const el=$("#e_"+k); if(el && document.activeElement!==el) el.value=S.ecg[k]; });
+  renderTags("#ecgTags", ["brugada","avblock","scoop","bidirVT","ectopy","atachblock","peakedT","uwave","torsades","sinusbrady","stelev","irregular","raxis","avrR"]);
+  const q=qtc(), out=$("#qtcOut");
+  out.innerHTML = q ? `<dt>RR</dt><dd>${(q.rr*1000).toFixed(0)} ms</dd><dt>QTc Bazett</dt><dd>${q.bazett.toFixed(0)} ms</dd><dt>QTc Fridericia</dt><dd>${q.fridericia.toFixed(0)} ms</dd><dt>QTc Framingham</dt><dd>${q.framingham.toFixed(0)} ms</dd><dt>QTc Hodges</dt><dd>${q.hodges.toFixed(0)} ms</dd>` : `<dt class="muted">QT ve hız girin</dt><dd></dd>`;
+  const flags=[], e=S.ecg, n=num;
+  if (n(e.qrs)!=null){
+    if (e.qrs>=160) flags.push(["crit","QRS ≥160 ms","Ventriküler aritmi riski ~%50 (TSA). NaHCO₃ bolus; lidokain/lipid hazır."]);
+    else if (e.qrs>=100) flags.push(["warn","QRS ≥100 ms","Nöbet riski ~%26 (TSA). Na kanal blokajı düşün; NaHCO₃ 1-2 mEq/kg ve daralma yanıtı değerlendir. Hiperkalemiyi dışla."]);
+    else flags.push(["ok","QRS dar","Na kanal blokajı için düşük olasılık (erken dönemde tekrar et)."]);
+  }
+  if (q){
+    const qv=q.fridericia;
+    if (qv>500) flags.push(["crit",`QTc ${qv.toFixed(0)} ms (Fridericia)`,"Torsades riski: K >4, Mg >2, Mg 2 g IV, QT uzatan ilaçları kes, overdrive pacing/izoproterenol hazır. Taşikardide Bazett QTc'yi abartır; Fridericia tercih."]);
+    else if (qv>470) flags.push(["warn",`QTc ${qv.toFixed(0)} ms`,"Uzamış (erkek ≥470, kadın ≥480). Elektrolitleri düzelt, seri EKG."]);
+  }
+  if ((n(e.avr)!=null && e.avr>=3) || (n(e.avrrs)!=null && e.avrrs>0.7)) flags.push(["crit","aVR terminal R ≥3 mm / R:S >0,7","TSA toksisitesinde nöbet ve aritmi öngörücüsü."]);
+  if (e.axis==="right") flags.push(["warn","Terminal sağ aks","Terminal 40 ms'de sağ aks deviasyonu (aVR'de R, I/aVL'de S) Na kanal blokajı lehine."]);
+  if (S.findings.brugada>0) flags.push(["warn","Brugada paterni","Na kanal blokajında kötü prognoz; bikarbonat."]);
+  const hr=n(e.hr)??n(S.vitals.hr);
+  if (hr!=null && hr<50) flags.push(["warn","Bradikardi","BB/KKB/digoksin/klonidin/organofosfat/hiperkalemi? Atropin, pacing, HIE hazırlığı."]);
+  if (e.rhythm==="Bidireksiyonel VT"||e.rhythm==="Atriyal taşikardi + blok") flags.push(["crit",e.rhythm,"Digoksin toksisitesi için yüksek özgüllük → Fab endikasyonu."]);
+  if (e.rhythm==="Torsades") flags.push(["crit","Torsades de pointes","Mg 2 g IV, defibrilasyon (nabızsız), overdrive pacing."]);
+  const kk=n(e.k)??n(S.lab.k);
+  if (kk!=null && kk>5.5) flags.push(["crit",`K ${kk} mmol/L`,"Akut digoksinde K >5-5,5 → Fab endikasyonu ve mortalite öngörücüsü. Kalsiyum digoksinde tartışmalı."]);
+  if (kk!=null && kk<3.5) flags.push(["warn",`K ${kk} mmol/L`,"Hipokalemi: QT uzaması/torsades riski; kronik digoksin toksisitesini kolaylaştırır."]);
+  if (S.findings.scoop>0) flags.push(["info","Digoksin etkisi","Çukur ST tek başına toksisite göstermez."]);
+  $("#ecgFlags").innerHTML = flags.length ? flags.map(f=>`<div class="flag ${f[0]}"><b>${esc(f[1])}</b><span>${esc(f[2])}</span></div>`).join("") : '<div class="flag"><b>Bayrak yok</b><span>Ölçümleri girin.</span></div>';
+}
+
+/* ---------- render: lab ---------- */
+function renderLab(){
+  Object.keys(S.lab).forEach(k=>{ const el=$("#l_"+k)||( k==="flevel"?$("#f_level"): k==="fmg"?$("#f_mg"):null); if(el && document.activeElement!==el) el.value=S.lab[k]; });
+  const ag=anionGap(), o=$("#agOut");
+  if (ag){
+    const parts=[`<div class="big">AG ${ag.ag.toFixed(0)} <span class="sub">mEq/L</span></div>`];
+    parts.push(`<div class="sub">${ag.ag>12?'Artmış anyon açığı':'Normal anyon açığı (≤12)'}${ag.agc!=null?` · albümin düzeltilmiş ${ag.agc.toFixed(0)}`:''}</div>`);
+    if (num(S.lab.hco3)<24 && ag.ag>12) parts.push(`<div class="sub">Delta oranı ${isFinite(ag.delta)?ag.delta.toFixed(2):'—'} → ${ag.delta<0.4?'hiperkloremik asidoz baskın':ag.delta<0.8?'karma (AG + hiperkloremik)':ag.delta<=2?'saf AG asidoz':'eşlik eden metabolik alkaloz'}</div>`);
+    if (num(S.lab.hco3)<22) parts.push(`<div class="sub">Winter: beklenen pCO₂ ${ag.winter.toFixed(0)} ± 2${num(S.lab.pco2)!=null?` · ölçülen ${S.lab.pco2} → ${S.lab.pco2<ag.winter-2?'eşlik eden respiratuvar ALKALOZ (salisilat?)':S.lab.pco2>ag.winter+2?'eşlik eden respiratuvar asidoz (yetersiz kompansasyon)':'uygun kompansasyon'}`:''}</div>`);
+    if (ag.ag>12 && num(S.lab.hco3)<22) parts.push(`<div class="sub"><b>GOLD MARK</b>: glikoller, oksoprolin, L-laktat, D-laktat, metanol, aspirin, renal, ketoasidoz. Laktat ${num(S.lab.lac)!=null?S.lab.lac:'?'}.</div>`);
+    o.innerHTML=parts.join("");
+  } else o.innerHTML='<span class="sub">Na, Cl ve HCO₃ girin.</span>';
+  const og=osmGap(), oo=$("#osmOut");
+  if (og){
+    const g=og.gap;
+    let html=`<div class="big">Ozmolar gap ${g.toFixed(0)}</div><div class="sub">Hesaplanan ${og.calc.toFixed(0)} = 2·Na + glukoz/18 + BUN/2,8 + etanol/4,6 · ${g>10?'ARTMIŞ (>10): toksik alkol, ağır alkol, keton, laktat, propilen glikol, mannitol':'normal (−10 ile +10); normal gap toksik alkolü DIŞLAMAZ (geç dönem)'}</div>`;
+    if (g>10) html+=`<div class="sub" style="margin-top:6px">Gap'in tamamı tek ajana bağlıysa tahmini düzey (mg/dL): <b>metanol ${(g*3.2).toFixed(0)}</b> · <b>etilen glikol ${(g*6.2).toFixed(0)}</b> · izopropanol ${(g*6.0).toFixed(0)} · etanol ${(g*4.6).toFixed(0)}. Fomepizol eşiği: metanol/EG ≥20-25 mg/dL veya gap >10 + şüphe.</div>`;
+    oo.innerHTML=html;
+  } else oo.innerHTML='<span class="sub">Ölçülen ozmolalite, Na, glukoz ve BUN girin.</span>';
+  drawRumack();
+  const rm=rumack(), ao=$("#apapOut");
+  if (rm){
+    if (!rm.valid) ao.innerHTML=`<div class="sub">Nomogram yalnız 4-24 saat için geçerli. &lt;4 saatte 4. saat düzeyini bekle; &gt;24 saatte düzey + ALT ile karar ver (ölçülebilir düzey veya ALT yüksekse NAC).</div>`;
+    else ao.innerHTML=`<div class="big ${rm.above?'':''}" style="color:${rm.above?'var(--crit)':'var(--ok)'}">${rm.above?'Çizginin ÜSTÜNDE → NAC başla':'Çizginin altında'}</div><div class="sub">${rm.t} saatte tedavi çizgisi ${rm.line.toFixed(0)} µg/mL (150 µg/mL @4 s, t½ 4 s; özgün 'olası hepatotoksisite' çizgisi 200). ${rm.veryhigh?'<b>Yüksek risk çizgisi (300) üstünde:</b> uzatılmış NAC / üçüncü torbada doz artışı düşün.':''} Alım saatinde belirsizlik varsa en erken olasılığı kullan.</div>`;
+  } else ao.innerHTML='<span class="sub">Düzey ve zamanı girin. Tek akut alım için geçerlidir; kademeli/kronik alımda ALT ve düzeye göre karar ver.</span>';
+  // düzeyler
+  const L=S.lab, lv=[];
+  if (num(L.sali)!=null) lv.push(`<span class="pill ${L.sali>=90?'crit':L.sali>=60?'warn':L.sali>30?'warn':'ok'}">Salisilat ${L.sali} mg/dL — ${L.sali>=100?'HD endikasyonu (akut)':L.sali>=90?'HD (böbrek bozukluğunda) / kronikte >60':L.sali>=60?'kronikse HD endikasyonu; akutta alkalinizasyon':L.sali>30?'toksik aralık, alkalinizasyon':'terapötik'}</span>`);
+  if (num(L.digi)!=null) lv.push(`<span class="pill ${L.digi>2?'warn':'ok'}">Digoksin ${L.digi} ng/mL ${L.digi>2?'— yüksek (kliniğe göre Fab)':''}</span>`);
+  if (num(L.li)!=null) lv.push(`<span class="pill ${L.li>=4?'crit':L.li>1.5?'warn':'ok'}">Lityum ${L.li} mmol/L ${L.li>=4?'— HD endikasyonu (özellikle böbrek bozukluğunda); >5 kesin':L.li>1.5?'— toksik':''}</span>`);
+  if (num(L.methb)!=null) lv.push(`<span class="pill ${L.methb>=30?'crit':L.methb>=20?'warn':L.methb>3?'warn':'ok'}">MetHb %${L.methb} ${L.methb>=30?'— acil: metilen mavisi':L.methb>=20?'— semptomatikse metilen mavisi':L.methb>3?'— yüksek; hipoksi semptomu varsa tedavi':''}</span>`);
+  if (num(L.cohb)!=null) lv.push(`<span class="pill ${L.cohb>=25?'crit':L.cohb>=10?'warn':'ok'}">COHb %${L.cohb} ${L.cohb>=25?'— HBO düşün':L.cohb>=10?'— %100 O₂':''}</span>`);
+  if (num(L.ck)!=null) lv.push(`<span class="pill ${L.ck>5000?'crit':L.ck>1000?'warn':'ok'}">CK ${L.ck} ${L.ck>5000?'— ağır rabdomiyoliz':L.ck>1000?'— rabdomiyoliz':''}</span>`);
+  if (num(L.alt)!=null) lv.push(`<span class="pill ${L.alt>1000?'crit':L.alt>100?'warn':'ok'}">ALT ${L.alt}</span>`);
+  $("#levelsOut").innerHTML = lv.join(" ") || '<span class="sub">Düzeyler eşiklerle yorumlanır.</span>';
+  renderTags("#labTags", ["oxalate","ketosis","spo2gap","chocblood","venoushyperox","hypoCa","aki","leuko","lfthigh","hypoNa","hypoK","hyperK","respalk","lactate","agacid","osmgap","apaplevel"]);
+  // Fab
+  const wt=num(S.patient.wt), fl=num(L.flevel), fm=num(L.fmg), fo=[];
+  if (fl!=null && wt!=null) fo.push(`Düzeye göre: ${Math.ceil(fl*wt/100)} flakon (${fl} × ${wt} / 100 = ${(fl*wt/100).toFixed(1)})`);
+  if (fm!=null) fo.push(`Alınan doza göre: ${Math.ceil(fm*0.8/0.5)} flakon (${fm} mg × 0,8 / 0,5)`);
+  fo.push("Ampirik (miktar bilinmiyor): görece stabil 2 flakon, yanıt yetersizse 1-2 tekrar; arrest yakın/arrest 10 flakon. Endikasyon: hayatı tehdit eden aritmi, K >5-5,5 (akut), hemodinamik instabilite, uç organ hasarı.");
+  $("#fabOut").innerHTML = fo.map(x=>`<div class="sub">${esc(x)}</div>`).join("");
+  // hızlı doz
+  const qd=[];
+  if (wt!=null){
+    qd.push(`<b>NAC IV 21 s</b>: ${Math.round(150*wt)} mg/60 dk → ${Math.round(50*wt)} mg/4 s → ${Math.round(100*wt)} mg/16 s`);
+    qd.push(`<b>NaHCO₃</b>: ${Math.round(wt)}-${Math.round(2*wt)} mEq bolus`);
+    qd.push(`<b>Lipid %20</b>: ${Math.round(1.5*wt)} mL bolus, ${(0.25*wt).toFixed(0)} mL/dk`);
+    qd.push(`<b>HIE</b>: ${Math.round(wt)} U bolus + ${Math.round(wt)} U/s (→${Math.round(10*wt)} U/s), dekstroz ${Math.round(0.5*wt)} g bolus`);
+    qd.push(`<b>Fomepizol</b>: ${Math.round(15*wt)} mg yükleme, ${Math.round(10*wt)} mg/12 s`);
+    qd.push(`<b>Metilen mavisi</b>: ${Math.round(wt)}-${Math.round(2*wt)} mg (${(0.1*wt).toFixed(0)}-${(0.2*wt).toFixed(0)} mL %1)`);
+    qd.push(`<b>Pralidoksim</b>: ${Math.round(30*wt)} mg yükleme (maks 2 g), ${Math.round(8*wt)} mg/s`);
+    qd.push(`<b>Dantrolen</b>: ${(2.5*wt).toFixed(0)} mg IV`);
+    qd.push(`<b>Aktif kömür</b>: ${Math.min(50,Math.round(wt))} g`);
+  } else qd.push('<span class="sub">Kilo girildiğinde kilo bazlı dozlar burada görünür.</span>');
+  $("#quickDose").innerHTML = qd.map(x=>`<div class="sub">${x}</div>`).join("");
+}
+function drawRumack(){
+  const c=$("#rmCanvas"); if(!c) return; const ctx=c.getContext("2d"); const W=c.width,H=c.height;
+  const cs=getComputedStyle(document.documentElement); const fg=cs.getPropertyValue("--fg-2").trim()||"#555", line=cs.getPropertyValue("--line").trim()||"#ccc", crit=cs.getPropertyValue("--crit").trim()||"#c00", warn=cs.getPropertyValue("--warn").trim()||"#b70", pin=cs.getPropertyValue("--pin").trim()||"#d70";
+  ctx.clearRect(0,0,W,H);
+  const px=54,py=14,pw=W-px-14,ph=H-py-36;
+  const xs=t=>px+pw*(t-4)/20, ys=v=>py+ph*(1-(Math.log10(v)-Math.log10(5))/(Math.log10(600)-Math.log10(5)));
+  ctx.strokeStyle=line; ctx.lineWidth=1; ctx.font="11px JetBrains Mono, monospace"; ctx.fillStyle=fg;
+  [5,10,20,50,100,150,200,300,500].forEach(v=>{ ctx.beginPath(); ctx.moveTo(px,ys(v)); ctx.lineTo(px+pw,ys(v)); ctx.stroke(); ctx.textAlign="right"; ctx.fillText(v,px-6,ys(v)+4); });
+  [4,8,12,16,20,24].forEach(t=>{ ctx.beginPath(); ctx.moveTo(xs(t),py); ctx.lineTo(xs(t),py+ph); ctx.stroke(); ctx.textAlign="center"; ctx.fillText(t+" s",xs(t),py+ph+16); });
+  ctx.textAlign="left"; ctx.fillText("µg/mL",px-50,py+8);
+  const drawLine=(k,col)=>{ ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); for(let t=4;t<=24;t+=0.5){ const v=k*Math.pow(2,-(t-4)/4); const x=xs(t),y=ys(v); t===4?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.stroke(); };
+  drawLine(300,warn); drawLine(150,crit);
+  ctx.fillStyle=crit; ctx.fillText("150 (tedavi çizgisi)",xs(4)+6,ys(150)-6); ctx.fillStyle=warn; ctx.fillText("300 (yüksek risk)",xs(4)+6,ys(300)-6);
+  const rm=rumack(); if(rm&&rm.valid){ const x=xs(rm.t), y=ys(Math.max(5,Math.min(600,rm.c))); ctx.fillStyle=pin; ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.stroke(); }
+}
+
+/* ---------- render: sıralama ---------- */
+function renderRank(){
+  const sc=score(); const any=Object.keys(effectiveFindings()).length;
+  const wrap=$("#rank");
+  if (!any){ wrap.innerHTML='<div class="empty">Vital, muayene, EKG veya lab bulgusu girildikçe sıralama burada oluşur.</div>'; }
+  else wrap.innerHTML = sc.slice(0,8).map((r,i)=>`<div class="rk ${i===0&&r.s>0?'top':''} ${r.s<=0?'':''}" data-t="${r.t.id}" title="${esc(r.t.classic)}"><div class="h"><b>${esc(r.t.name)}</b><span class="sc">${r.s>0?'+':''}${r.s}</span></div><div class="bar"><i style="width:${r.pct}%"></i></div><div class="why">${r.plus.slice(0,4).map(p=>`<span class="plus">+${p.w} ${esc(p.lbl)}</span>`).join(" · ")}${r.minus.length?' · '+r.minus.slice(0,2).map(m=>`<span class="minus">${m.w} ${esc(m.lbl)}${m.present?'':' (yok)'}</span>`).join(" · "):''}</div></div>`).join("");
+  // uyarılar
+  const al=[], f=effectiveFindings(), v=S.vitals, n=num;
+  if (f.qrswide) al.push(["crit","Geniş QRS → NaHCO₃"]);
+  if (f.qtlong) al.push(["crit","QTc >500 → Mg, K/Mg düzelt"]);
+  if (f.hypogly) al.push(["crit","Hipoglisemi → dekstroz"]);
+  if (f.bradypnea||f.hypoxia) al.push(["crit","Ventilasyon yetersiz → havayolu, nalokson?"]);
+  if (n(v.temp)!=null && v.temp>40) al.push(["crit","Isı >40 °C → agresif soğutma, sedasyon"]);
+  if (f.hypot && f.brady) al.push(["crit","Bradikardi + hipotansiyon → Ca, glukagon, HIE, pacing"]);
+  if (f.lactate && !f.hypoxia) al.push(["warn","Hipoksi olmadan laktat yüksek → siyanür/CO/metformin?"]);
+  if (f.osmgap && f.agacid) al.push(["crit","Ozmolar gap + AG asidoz → fomepizol"]);
+  if (f.spo2gap||f.chocblood||f.methb) al.push(["crit","MetHb → metilen mavisi"]);
+  if (f.apaplevel) al.push(["crit","Parasetamol çizgi üstü → NAC"]);
+  if (f.refractseiz) al.push(["crit","Dirençli nöbet → piridoksin (INH?), propofol"]);
+  if ((f.clonus||f.sponclonus) && f.hyperth) al.push(["warn","Klonus + hipertermi → serotonin sendromu; soğutma, benzodiazepin"]);
+  if (f.leadpipe && f.hyperth) al.push(["warn","Rijidite + hipertermi → NMS/MH; CK, dantrolen"]);
+  if (f.bronchorr) al.push(["crit","Bronkore → atropin, dekontaminasyon"]);
+  if (f.hyperK && (f.h_digi||f.digilevel)) al.push(["crit","Digoksin + hiperkalemi → Fab"]);
+  $("#alerts").innerHTML = al.length ? al.map(a=>`<div class="flag ${a[0]}"><b>${esc(a[1])}</b><span></span></div>`).join("") : '<div class="empty">Kritik uyarı yok.</div>';
+  $("#findingChip").innerHTML=`<b>${Object.keys(S.findings).length}</b> bulgu${Object.keys(auto).length?` · <b>${Object.keys(auto).length}</b> otomatik`:''}`;
+  $("#patientChip").textContent = S.patient.name || (S.patient.agent ? `Ajan: ${S.patient.agent}` : "Yeni hasta");
+}
+
+/* ---------- render: rehberli ayrım ---------- */
+function nextQuestion(){
+  const sc=score().filter(r=>r.s>0); const f=effectiveFindings();
+  const cands = sc.length>=2 ? sc.slice(0,4) : (sc.length===1 ? [sc[0], ...score().slice(1,4)] : score().slice(0,4));
+  const answered = new Set([...Object.keys(f), ...S.skipped]);
+  let best=null, bestGain=0;
+  for (const fd of FINDINGS){
+    if (!fd.q || answered.has(fd.id)) continue;
+    if (fd.cat==="vital"||fd.cat==="ecg"||fd.cat==="lab") { /* ölçümler ayrı sekmelerden gelir ama sorulabilir */ }
+    const ws = cands.map(c=>c.t.w[fd.id]||0);
+    const spread = Math.max(...ws)-Math.min(...ws);
+    const top2 = ws.length>1 ? Math.abs(ws[0]-ws[1]) : spread;
+    const relevance = ws.reduce((a,b)=>a+Math.abs(b),0);
+    // yatak başı sorular önce: öykü ve muayene; ölçüm gerektiren lab/EKG/vital sorular geriye
+    const penalty = fd.cat==="lab"?-4 : fd.cat==="ecg"?-3 : fd.cat==="vital"?-2.5 : 0;
+    const gain = top2*3 + spread*1.5 + relevance*0.3 + (fd.cat==="hx"?0.5:0) + penalty;
+    if (gain>bestGain){ bestGain=gain; best=fd; }
+  }
+  return best ? { fd:best, cands } : null;
+}
+function renderQA(){
+  const q=nextQuestion(), card=$("#qcard");
+  if (!q){ card.innerHTML=`<h4>Rehberli ayrım</h4><div class="q">Ayırt edici soru kalmadı.</div><p class="why">Daha fazla bulgu girin veya atlananları sıfırlayın.</p>`; }
+  else {
+    const top=q.cands.map(c=>c.t); const fd=q.fd;
+    const favors = top.filter(t=>(t.w[fd.id]||0)>0).map(t=>`${t.short} (+${t.w[fd.id]})`);
+    const against = top.filter(t=>(t.w[fd.id]||0)<0).map(t=>`${t.short} (${t.w[fd.id]})`);
+    card.innerHTML=`<h4>Ayırt edilen: ${top.map(t=>esc(t.short)).join(" · ")}</h4><div class="q">${esc(fd.q)}</div><p class="why"><b>Varsa</b> lehine: ${favors.length?esc(favors.join(", ")):"—"}. <b>Aleyhine</b>: ${against.length?esc(against.join(", ")):"—"}.</p><div class="ans"><button type="button" class="y" data-a="${fd.id}:1">Var / Evet</button><button type="button" class="n" data-a="${fd.id}:-1">Yok / Hayır</button><button type="button" data-a="${fd.id}:skip">Bilinmiyor, atla</button></div>`;
+  }
+  const hist=[...Object.entries(S.findings)].reverse().slice(0,30);
+  $("#qhist").innerHTML = hist.length ? hist.map(([id,v])=>`<div><span>${esc(FINDING_BY_ID[id]?.label||id)}</span><b style="color:${v>0?'var(--pin)':'var(--fg-2)'}">${v>0?'var':'yok'}</b></div>`).join("") : '<span class="small muted">Henüz yanıt yok.</span>';
+  $("#discTable").innerHTML = DISCRIMINATORS.map(d=>`<tr><td><b>${esc(d.pair)}</b></td><td>${esc(d.key)}</td></tr>`).join("");
+}
+
+/* ---------- render: sonuç ---------- */
+function renderResult(){
+  const sc=score(), wrap=$("#resultBody");
+  const top=sc.filter(r=>r.s>0).slice(0,3);
+  if (!top.length){ wrap.innerHTML='<div class="card"><p class="muted">Henüz yeterli bulgu yok. Vital, muayene ve EKG verilerini girin.</p></div>'; }
+  else wrap.innerHTML = top.map((r,i)=>`<div class="card" style="border-left:5px solid ${r.t.color}"><h3>${i+1}. ${esc(r.t.name)} <span class="pill ${i===0?'crit':'neutral'}" style="margin-left:6px">${r.s>0?'+':''}${r.s} puan · ${r.pct}%</span></h3>
+    <p class="small"><b>Ajanlar:</b> ${esc(r.t.agents)}</p>
+    <p class="small" style="margin-top:4px"><b>Klasik tablo:</b> ${esc(r.t.classic)}</p>
+    <div class="grid g2" style="margin-top:10px">
+      <div><h4>Destekleyen</h4><div class="tags" style="margin-top:6px">${r.plus.map(p=>`<span class="tag on">+${p.w} ${esc(p.lbl)}</span>`).join("")||'<span class="small muted">—</span>'}</div></div>
+      <div><h4>Aleyhine</h4><div class="tags" style="margin-top:6px">${r.minus.map(m=>`<span class="tag on neg">${m.w} ${esc(m.lbl)}${m.present?'':' (yok)'}</span>`).join("")||'<span class="small muted">—</span>'}</div></div>
+    </div>
+    <div class="notice" style="margin-top:12px"><b>Yönetim:</b> ${esc(r.t.mgmt)}</div></div>`).join("") +
+    (sc.length>3 ? `<div class="card"><h3>Diğer adaylar</h3><div class="tags">${sc.slice(3,10).map(r=>`<span class="tag" data-t="${r.t.id}">${esc(r.t.name)} <span class="k">${r.s>0?'+':''}${r.s}</span></span>`).join("")}</div></div>`:"");
+  const table=$("#toxTable"); const topIds=new Set(top.map(r=>r.t.name));
+  table.innerHTML = `<thead><tr>${TOX_TABLE[0].map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${TOX_TABLE.slice(1).map(row=>`<tr class="${[...topIds].some(n=>n.toLowerCase().startsWith(row[0].toLowerCase().split(' ')[0]))?'hl':''}">${row.map((c,i)=>`<td>${i===0?'<b>'+esc(c)+'</b>':esc(c)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+}
+
+/* ---------- render: antidotlar ---------- */
+function renderAnti(){
+  const q=($("#antiFilter").value||"").toLowerCase().trim(), wt=num(S.patient.wt);
+  const list=ANTIDOTES.filter(a=>!q || (a.name+" "+a.tox+" "+a.dose).toLowerCase().includes(q));
+  $("#antiList").innerHTML = list.map(a=>{
+    let kg="";
+    if (wt!=null && a.perkg){
+      const p=a.perkg, parts=[];
+      if (p.load!=null){ let d=p.load*wt; if(p.max) d=Math.min(d,p.max); parts.push(`yükleme ≈ <b>${d%1?d.toFixed(1):d}</b> ${p.unit}${p.range?` (${p.range} ${p.unit}/kg)`:''}`); }
+      if (p.rate!=null) parts.push(`idame ≈ <b>${(p.rate*wt)%1?(p.rate*wt).toFixed(1):p.rate*wt}</b> ${p.rateUnit}`);
+      kg=`<div class="note" style="color:var(--accent)">${wt} kg için: ${parts.join(" · ")}</div>`;
+    }
+    return `<div class="card"><h3>${esc(a.name)}<span class="pill info">${esc(a.tox)}</span></h3><div class="dose">${esc(a.dose)}</div>${kg}<div class="note">${esc(a.note)}</div></div>`;
+  }).join("") || '<p class="muted">Eşleşen antidot yok.</p>';
+}
+
+/* ---------- vaka özeti & AI ---------- */
+function caseSummary(){
+  const p=S.patient, v=S.vitals, e=S.ecg, L=S.lab, f=effectiveFindings();
+  const line=[];
+  line.push(`HASTA: ${p.age||'?'} yaş ${p.sex==='E'?'erkek':p.sex==='K'?'kadın':''}${p.wt?`, ${p.wt} kg`:''}.`);
+  if (p.agent||p.time||p.route||p.intent) line.push(`MARUZİYET: ${p.agent||'bilinmiyor'}${p.time?`, ${p.time} saat önce`:''}${p.route?`, ${p.route}`:''}${p.intent?`, ${p.intent}`:''}.`);
+  if (p.meds) line.push(`İLAÇLAR: ${p.meds}.`); if (p.hx) line.push(`ÖYKÜ: ${p.hx}.`);
+  const vit=[["Nabız",v.hr,"/dk"],["TA",v.sbp&&`${v.sbp}/${v.dbp||'?'}`,"mmHg"],["SS",v.rr,"/dk"],["Isı",v.temp,"°C"],["SpO₂",v.spo2,"%"],["Glukoz",v.glu,"mg/dL"],["EtCO₂",v.etco2,"mmHg"]].filter(x=>x[1]).map(x=>`${x[0]} ${x[1]} ${x[2]}`);
+  const g=gcs(); if (g!=null) vit.push(`GKS ${g} (E${v.gcsE}V${v.gcsV}M${v.gcsM})`);
+  if (vit.length) line.push(`VİTALLER: ${vit.join(", ")}.`);
+  const pos=Object.entries(f).filter(([id,x])=>x>0).map(([id])=>FINDING_BY_ID[id]?.label||id);
+  const neg=Object.entries(S.findings).filter(([id,x])=>x<0).map(([id])=>FINDING_BY_ID[id]?.label||id);
+  if (pos.length) line.push(`BULGULAR (VAR): ${pos.join("; ")}.`);
+  if (neg.length) line.push(`BULGULAR (YOK): ${neg.join("; ")}.`);
+  const ek=[["Hız",e.hr],["Ritim",e.rhythm],["PR",e.pr&&e.pr+" ms"],["QRS",e.qrs&&e.qrs+" ms"],["QT",e.qt&&e.qt+" ms"],["aVR R",e.avr&&e.avr+" mm"],["Terminal aks",e.axis]].filter(x=>x[1]).map(x=>`${x[0]} ${x[1]}`);
+  const q=qtc(); if(q) ek.push(`QTc(F) ${q.fridericia.toFixed(0)} ms`);
+  if (ek.length) line.push(`EKG: ${ek.join(", ")}.`);
+  const lab=[["Na",L.na],["Cl",L.cl],["HCO₃",L.hco3],["pH",L.ph],["pCO₂",L.pco2],["Laktat",L.lac],["K",L.k||e.k],["iCa",L.ca],["Ozm",L.osm],["Glukoz",L.glu],["BUN",L.bun],["Etanol",L.etoh],["Parasetamol",L.apap&&`${L.apap} µg/mL @${L.apapt||'?'} s`],["Salisilat",L.sali],["Digoksin",L.digi],["Lityum",L.li],["MetHb",L.methb&&L.methb+"%"],["COHb",L.cohb&&L.cohb+"%"],["CK",L.ck],["Kreatinin",L.cr],["ALT",L.alt],["WBC",L.wbc]].filter(x=>x[1]).map(x=>`${x[0]} ${x[1]}`);
+  const ag=anionGap(); if(ag) lab.push(`AG ${ag.ag.toFixed(0)}`); const og=osmGap(); if(og) lab.push(`ozmolar gap ${og.gap.toFixed(0)}`);
+  if (lab.length) line.push(`LAB: ${lab.join(", ")}.`);
+  const sc=score().filter(r=>r.s>0).slice(0,4);
+  if (sc.length) line.push(`PUSULA SIRALAMASI: ${sc.map(r=>`${r.t.name} (${r.s})`).join(" > ")}.`);
+  return line.join("\n");
+}
+function renderSummary(){ $("#caseSummary").textContent = caseSummary() || "Henüz veri yok."; }
+
+let sampleFn=null, aiCtl=null;
+(async()=>{ try{ if(window.claude?.use){ sampleFn = await window.claude.use("sample"); } }catch(e){ sampleFn=null; } updateProvider(); })();
+function updateProvider(){
+  const sel=$("#aiProvider"); const local = location.protocol==="file:" || !window.claude;
+  if (!sampleFn && sel.value==="claude" && local) sel.value="gemini";
+  $("#geminiCfg").hidden = sel.value!=="gemini";
+  const st=$("#aiStatus");
+  if (sel.value==="claude") st.textContent = sampleFn ? "Claude hazır: yanıt bu sayfayı açan kişinin Claude kullanımından düşer." : "Claude yalnız claude.ai artifact görüntüleyicisinde kullanılabilir. Gemini için sağlayıcıyı değiştirin.";
+  else st.textContent = window.claude ? "Not: claude.ai artifact sandbox'ı dış API çağrısını engeller; Gemini için HTML dosyasını bilgisayarınızda açın." : "Anahtar yalnız bu tarayıcıda saklanır ve doğrudan Google'a gönderilir.";
+}
+const AI_RULES = `Sen bir acil tıp ve klinik toksikoloji uzmanısın. Aşağıdaki vaka özetine göre Türkçe, yapılandırılmış ve kısa yanıt ver: (1) En olası toksidrom(lar) ve gerekçe, (2) Ayırıcı tanı ve ayrımı netleştirecek bulgu/tetkikler, (3) İlk 1 saatte öncelikli yönetim adımları (doz aralıklarıyla, erişkin), (4) Tuzaklar ve izlem. Emin olmadığın yerde belirt. Bu bir karar destek aracıdır; nihai kararın klinisyene ait olduğunu bir cümleyle hatırlat.`;
+async function ask(){
+  const out=$("#aiOut"), btn=$("#btnAsk"), stop=$("#btnStop"); const prompt = AI_RULES + "\n\nVAKA:\n" + caseSummary() + "\n\nSORU: " + $("#aiQ").value.trim();
+  btn.disabled=true; stop.disabled=false; out.textContent="Düşünüyor…"; aiCtl=new AbortController();
+  try{
+    if ($("#aiProvider").value==="claude"){
+      if (!sampleFn) throw {code:"unavailable", message:"Claude bu ortamda kullanılamıyor."};
+      const r = await sampleFn(prompt, { signal:aiCtl.signal, onText:({text})=>{ out.textContent=text; }, cache:false });
+      out.textContent=r.text; if (r.truncated) out.textContent+="\n\n[Yanıt kesildi]";
+    } else {
+      const key=$("#geminiKey").value.trim(), model=$("#geminiModel").value.trim()||"gemini-2.5-flash";
+      if (!key) throw {code:"nokey", message:"Gemini API anahtarı girin."};
+      store.set("tp_gemini_key", key); store.set("tp_gemini_model", model);
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, { method:"POST", signal:aiCtl.signal, headers:{"Content-Type":"application/json","x-goog-api-key":key}, body: JSON.stringify({ contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{ temperature:0.3 } }) });
+      if (!res.ok){ const t=await res.text(); throw {code:"http", message:`Gemini ${res.status}: ${t.slice(0,300)}`}; }
+      const reader=res.body.getReader(), dec=new TextDecoder(); let buf="", acc="";
+      while(true){ const {value,done}=await reader.read(); if(done) break; buf+=dec.decode(value,{stream:true});
+        let idx; while((idx=buf.indexOf("\n\n"))>=0){ const chunk=buf.slice(0,idx); buf=buf.slice(idx+2);
+          chunk.split("\n").filter(l=>l.startsWith("data:")).forEach(l=>{ try{ const j=JSON.parse(l.slice(5).trim()); const t=j.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||""; acc+=t; out.textContent=acc; }catch(e){} }); } }
+      if (!acc) out.textContent="Boş yanıt (model adını kontrol edin).";
+    }
+  }catch(e){
+    if (e?.code==="cancelled"||e?.name==="AbortError") out.textContent=(e.text||out.textContent)+"\n\n[Durduruldu]";
+    else if (e?.code==="not_granted") out.textContent="Claude erişimine izin verilmedi.";
+    else if (e?.code==="rate_limited") out.textContent="Çok sık istek; biraz bekleyin.";
+    else out.textContent="Hata: "+(e?.message||e);
+  } finally { btn.disabled=false; stop.disabled=true; aiCtl=null; }
+}
+
+/* ---------- kayıt ---------- */
+function records(){ return store.get("tp_records", []); }
+function saveCase(){
+  if (!S.id){ S.id="c"+Date.now().toString(36); S.created=new Date().toISOString(); }
+  S.updated=new Date().toISOString();
+  const r=records().filter(x=>x.id!==S.id); r.unshift(JSON.parse(JSON.stringify(S))); store.set("tp_records", r.slice(0,60)); renderRecords(); toast("Vaka kaydedildi");
+}
+function renderRecords(){
+  const r=records(), w=$("#records");
+  w.innerHTML = r.length ? r.map(c=>`<div class="rec"><div><b>${esc(c.patient.name||c.patient.agent||'İsimsiz vaka')}</b><div class="m">${new Date(c.updated||c.created).toLocaleString("tr-TR")} · ${Object.keys(c.findings||{}).length} bulgu${c.patient.age?` · ${c.patient.age} y`:''}</div></div><div style="display:flex;gap:6px"><button type="button" class="btn sm" data-load="${c.id}">Aç</button><button type="button" class="btn sm danger" data-del="${c.id}">Sil</button></div></div>`).join("") : '<span class="small muted">Kayıtlı vaka yok.</span>';
+}
+function loadCase(c){ S={...blank(),...JSON.parse(JSON.stringify(c))}; S.view="patient"; syncInputs(); refresh(); showView("patient"); toast("Vaka yüklendi"); }
+function syncInputs(){
+  Object.keys(S.patient).forEach(k=>{ const el=$("#p_"+k); if(el) el.value=S.patient[k]; });
+  renderVitals(); renderECG(); renderLab();
+}
+
+/* ---------- ana yenileme ---------- */
+function refresh(){
+  deriveAuto();
+  renderRail(); renderRank();
+  const v=S.view;
+  if (v==="patient"){ renderTags("#hxTags", FINDINGS.filter(f=>f.cat==="hx").map(f=>f.id)); }
+  if (v==="vitals") renderVitals();
+  if (v==="exam") renderFigure();
+  if (v==="ecg") renderECG();
+  if (v==="lab") renderLab();
+  if (v==="qa") renderQA();
+  if (v==="result") renderResult();
+  if (v==="anti") renderAnti();
+  if (v==="ai") renderSummary();
+  store.set("tp_draft", S);
+}
+
+/* ---------- olaylar ---------- */
+function bind(){
+  document.addEventListener("click", e=>{
+    const t=e.target.closest("[data-view]"); if (t && t.closest("#rail")){ showView(t.dataset.view); refresh(); return; }
+    const tag=e.target.closest(".tag[data-f]"); if (tag){ cycleTag(tag.dataset.f); return; }
+    const set=e.target.closest("[data-set]"); if (set){ const [id,v]=set.dataset.set.split(":"); setFinding(id,+v); return; }
+    const hs=e.target.closest(".hs[data-r]"); if (hs){ S.region=hs.dataset.r; renderFigure(); return; }
+    const vs=e.target.closest("#viewSwitch button"); if (vs){ S.bodyView=vs.dataset.v; S.region=null; renderFigure(); return; }
+    const a=e.target.closest("[data-a]"); if (a){ const [id,v]=a.dataset.a.split(":"); if(v==="skip"){ if(!S.skipped.includes(id)) S.skipped.push(id); refresh(); } else setFinding(id,+v); return; }
+    const rk=e.target.closest(".rk[data-t], .tag[data-t]"); if (rk){ showView("result"); refresh(); return; }
+    const ld=e.target.closest("[data-load]"); if (ld){ const c=records().find(x=>x.id===ld.dataset.load); if(c) loadCase(c); return; }
+    const dl=e.target.closest("[data-del]"); if (dl){ if(dl.dataset.confirm){ store.set("tp_records", records().filter(x=>x.id!==dl.dataset.del)); renderRecords(); toast("Silindi"); } else { dl.dataset.confirm="1"; dl.textContent="Emin misiniz?"; setTimeout(()=>{ delete dl.dataset.confirm; dl.textContent="Sil"; },3000); } return; }
+  });
+  document.addEventListener("input", e=>{
+    const el=e.target; if(!el.id) return;
+    const [pre,key]=[el.id.slice(0,2), el.id.slice(2)];
+    if (pre==="p_"){ S.patient[key]=el.value; if(key==="wt"||key==="name"||key==="agent"){ renderRank(); } store.set("tp_draft",S); if(key==="wt"){ deriveAuto(); } return; }
+    if (pre==="v_"){ S.vitals[key]=el.value; refresh(); return; }
+    if (pre==="e_"){ S.ecg[key]=el.value; refresh(); return; }
+    if (pre==="l_"){ S.lab[key]=el.value; refresh(); return; }
+    if (el.id==="f_level"){ S.lab.flevel=el.value; renderLab(); return; }
+    if (el.id==="f_mg"){ S.lab.fmg=el.value; renderLab(); return; }
+    if (el.id==="antiFilter"){ renderAnti(); return; }
+  });
+  document.addEventListener("change", e=>{ const el=e.target; if(el.id==="aiProvider") updateProvider(); });
+  $("#btnSave").onclick=saveCase;
+  $("#btnNew").onclick=()=>{ if ($("#btnNew").dataset.c){ S=blank(); syncInputs(); refresh(); showView("patient"); refresh(); delete $("#btnNew").dataset.c; $("#btnNew").textContent="Yeni vaka"; toast("Yeni vaka"); } else { $("#btnNew").dataset.c="1"; $("#btnNew").textContent="Kaydedilmemiş veri silinsin mi? Tekrar tıkla"; setTimeout(()=>{ delete $("#btnNew").dataset.c; $("#btnNew").textContent="Yeni vaka"; },4000); } };
+  $("#btnExport").onclick=async()=>{ const j=JSON.stringify(S,null,1); try{ await navigator.clipboard.writeText(j); toast("JSON panoya kopyalandı"); }catch(e){ const b=$("#importBox"); b.hidden=false; b.value=j; b.select(); toast("Kopyalamak için metni seçin"); } };
+  $("#btnImport").onclick=()=>{ const b=$("#importBox"); if (b.hidden){ b.hidden=false; b.value=""; b.focus(); b.placeholder="JSON'u yapıştırıp bu düğmeye tekrar basın"; } else { try{ const c=JSON.parse(b.value); if(!c.patient||!c.findings) throw 0; c.id=null; loadCase(c); b.hidden=true; }catch(e){ toast("Geçersiz JSON"); } } };
+  $("#btnQReset").onclick=()=>{ S.skipped=[]; refresh(); };
+  $("#btnCopySummary").onclick=async()=>{ try{ await navigator.clipboard.writeText(caseSummary()); toast("Özet kopyalandı"); }catch(e){ const r=document.createRange(); r.selectNodeContents($("#caseSummary")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Metin seçildi, kopyalayın"); } };
+  $("#btnAsk").onclick=ask; $("#btnStop").onclick=()=>aiCtl?.abort();
+  $("#geminiKey").value=store.get("tp_gemini_key",""); $("#geminiModel").value=store.get("tp_gemini_model","gemini-2.5-flash");
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", ()=>drawRumack());
+}
+
+/* ---------- başlangıç ---------- */
+function start(){
+  bind();
+  const d=store.get("tp_draft", null);
+  if (d && d.patient){ S={...blank(),...d}; }
+  if (!S.findings || !Object.keys(S.findings).length && !S.patient.agent && !num(S.vitals.hr)) {
+    // Örnek vaka: ilk açılışta aracın ne yaptığını gösterir
+    if (!d){ S=blank(); S.patient={...S.patient, name:"Örnek vaka (TSA)", age:"27", sex:"K", wt:"62", agent:"Amitriptilin 25 mg ×40 (örnek)", time:"2", route:"Oral", intent:"Kasıtlı (özkıyım)"};
+      S.vitals={...S.vitals, hr:"128", sbp:"88", dbp:"52", rr:"14", temp:"38.4", spo2:"96", glu:"132", gcsE:"2", gcsV:"2", gcsM:"4"};
+      S.ecg={...S.ecg, hr:"128", rhythm:"Sinüs taşikardisi", qrs:"128", qt:"380", avr:"4"};
+      S.findings={ mydriasis:1, dryskin:1, drymucosa:1, bs_down:1, retention:1, h_tca:1, diaph:-1, clonus:-1 }; }
+  }
+  syncInputs(); renderRecords();
+  showView(S.view||"patient"); refresh();
+  // artifact canlı güncelleme
+  window.claude?.hot?.snapshot?.(()=>S);
+}
+if (window.claude?.hot?.ready) window.claude.hot.ready(d=>{ if(d&&d.patient) S={...blank(),...d}; start(); }); else start();
+</script>
+</body></html>
